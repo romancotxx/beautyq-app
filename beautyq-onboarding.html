@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>БьютиQ</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#2448D5;--accent-2:#237EFF;--radius:16px;--radius-sm:12px}
+[data-theme="dark"]{--bg:#0C0E27;--surface:#161830;--surface-2:#1e2040;--border:#2a2d50;--text:#f0f0f8;--muted:#7a7d9e;--soft:rgba(36,72,213,.15);--nav:linear-gradient(to top,#0C0E27 65%,transparent)}
+[data-theme="light"]{--bg:#E9E9EA;--surface:#fff;--surface-2:#f2f2f4;--border:#d4d4d8;--text:#0C0E27;--muted:#6b6b80;--soft:rgba(36,72,213,.08);--nav:linear-gradient(to top,#E9E9EA 65%,transparent)}
+html{font-size:16px}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 120px;transition:background .25s,color .25s}
+.header{padding:28px 20px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.logo-dark{display:none}.logo-light{display:block}[data-theme="dark"] .logo-dark{display:block}[data-theme="dark"] .logo-light{display:none}.logo-wrap{margin-bottom:10px}
+.header p{font-size:13px;color:var(--muted);line-height:1.5}
+.theme-btn{flex-shrink:0;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s;margin-top:2px}
+.theme-btn:hover{border-color:var(--accent)}
+.theme-btn svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:1.8}
+.i-sun{display:none}.i-moon{display:block}
+[data-theme="light"] .i-sun{display:block}[data-theme="light"] .i-moon{display:none}
+.progress{height:2px;background:var(--border)}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width .4s}
+.steps{padding:0 20px}
+.step{display:none;padding-top:28px}.step.active{display:block}
+.s-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.s-title{font-size:18px;font-weight:600;margin-bottom:6px;line-height:1.3}
+.s-hint{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.field{margin-bottom:16px}
+.flabel{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:8px;letter-spacing:.03em}
+input[type=text],textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:15px;padding:13px 16px;outline:none;transition:border-color .2s,background .2s;appearance:none;-webkit-appearance:none}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);background:var(--surface-2)}
+textarea{resize:none;line-height:1.6;min-height:100px}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+.cb-group{display:flex;flex-direction:column;gap:8px}
+.cb-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .2s,background .2s;user-select:none}
+.cb-item:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.cb-item input[type=checkbox]{width:18px;height:18px;border:1.5px solid var(--border);border-radius:5px;background:transparent;appearance:none;-webkit-appearance:none;flex-shrink:0;cursor:pointer;position:relative;transition:border-color .2s,background .2s}
+.cb-item input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.cb-item input[type=checkbox]:checked::after{content:'';position:absolute;left:4px;top:1px;width:6px;height:10px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.cb-item span{font-size:14px;color:var(--text)}
+.other-wrap{display:none;margin-top:8px}.other-wrap.on{display:block}
+.rb-group{display:flex;flex-direction:column;gap:8px}
+.rb-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .2s,background .2s;user-select:none}
+.rb-item:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.rb-item input[type=radio]{width:18px;height:18px;border:1.5px solid var(--border);border-radius:50%;background:transparent;appearance:none;-webkit-appearance:none;flex-shrink:0;cursor:pointer;position:relative;transition:border-color .2s}
+.rb-item input[type=radio]:checked{border-color:var(--accent)}
+.rb-item input[type=radio]:checked::after{content:'';position:absolute;left:3px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.rb-item span{font-size:14px;color:var(--text)}
+.color-fields{display:flex;flex-direction:column;gap:12px}
+.color-row{display:flex;align-items:center;gap:12px}
+.color-prev{width:44px;height:44px;border-radius:var(--radius-sm);border:1px solid var(--border);flex-shrink:0;background:var(--surface-2);transition:background .2s}
+.color-ins{flex:1;display:flex;flex-direction:column;gap:6px}
+.color-ins input{padding:10px 14px;font-size:14px;font-family:'SF Mono','Fira Code',monospace}
+.clabel{font-size:11px;color:var(--muted);padding:0 2px;font-weight:500}
+.add-btn{display:flex;align-items:center;gap:8px;padding:12px 16px;background:transparent;border:1.5px dashed var(--border);border-radius:var(--radius-sm);color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;transition:border-color .2s,color .2s;width:100%;margin-top:8px}
+.add-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ex-list{display:flex;flex-direction:column;gap:10px}
+.ex-item{position:relative}
+.ex-num{position:absolute;top:13px;left:16px;font-size:13px;font-weight:600;color:var(--accent);pointer-events:none;z-index:1}
+.ex-item textarea{padding-left:36px;min-height:90px}
+.nav{position:fixed;bottom:0;left:0;right:0;padding:16px 20px;background:var(--nav);display:flex;gap:10px;transition:background .25s}
+.btn-back{padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:border-color .2s,color .2s;display:none;white-space:nowrap}
+.btn-back.on{display:block}
+.btn-back:hover{border-color:var(--muted);color:var(--text)}
+.btn-next{flex:1;padding:14px 20px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;border-radius:var(--radius);color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s;box-shadow:0 4px 16px rgba(36,72,213,.35)}
+.btn-next:hover{opacity:.9}.btn-next:active{opacity:.8}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="logo-wrap"><svg class="logo-dark" width="140" height="21" viewBox="0 0 818 121" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.9219 43.9459H71.2479C80.4946 43.9459 88.0866 45.3573 94.0239 48.1799C99.9613 51.0026 104.39 54.9933 107.31 60.1519C110.23 65.2133 111.69 71.1506 111.69 77.9639C111.69 84.7773 110.084 90.7633 106.872 95.9219C103.66 100.983 99.0366 104.925 93.0019 107.748C86.9673 110.473 79.7159 111.836 71.2479 111.836H-6.02379e-05L8.46794 55.0419L-6.02379e-05 2.33593H103.222V25.2579H18.8339L30.3679 11.3879L37.2299 54.4579L29.7839 103.66L18.2499 89.7899H67.3059C71.6859 89.7899 75.1413 88.6706 77.6719 86.4319C80.2999 84.1933 81.6139 81.1273 81.6139 77.2339C81.6139 73.2433 80.2999 70.1773 77.6719 68.0359C75.1413 65.7973 71.6859 64.6779 67.3059 64.6779H22.9219V43.9459ZM126.26 111.836V2.33593H156.482V101.616L142.904 88.0379H185.536C190.5 88.0379 194.345 86.7726 197.07 84.2419C199.893 81.7113 201.304 78.3046 201.304 74.0219C201.304 69.6419 199.893 66.2353 197.07 63.8019C194.345 61.3686 190.5 60.1519 185.536 60.1519H140.276V36.2079H187.434C196.681 36.2079 204.614 37.8139 211.232 41.0259C217.948 44.1406 223.058 48.5206 226.562 54.1659C230.164 59.8113 231.964 66.4299 231.964 74.0219C231.964 81.6139 230.164 88.2813 226.562 94.0239C223.058 99.6693 217.948 104.049 211.232 107.164C204.614 110.279 196.681 111.836 187.434 111.836H126.26ZM353.502 114.172C340.654 114.172 329.412 111.787 319.776 107.018C310.14 102.249 302.646 95.5813 297.292 87.0159C292.036 78.4506 289.408 68.4739 289.408 57.0859C289.408 45.6979 292.036 35.7213 297.292 27.1559C302.646 18.5906 310.14 11.9233 319.776 7.15394C329.412 2.3846 340.654 0 353.502 0C366.448 0 377.738 2.3846 387.374 7.15394C397.01 11.9233 404.505 18.5906 409.858 27.1559C415.309 35.7213 418.034 45.6979 418.034 57.0859C418.034 68.4739 415.309 78.4506 409.858 87.0159C404.505 95.5813 397.01 102.249 387.374 107.018C377.738 111.787 366.448 114.172 353.502 114.172ZM245.17 111.836V2.33593H275.392V111.836H245.17ZM262.106 69.6419V42.7779H305.03V69.6419H262.106ZM353.502 87.1619C360.51 87.1619 366.545 85.9453 371.606 83.5119C376.668 81.0786 380.561 77.6233 383.286 73.1459C386.012 68.5713 387.374 63.2179 387.374 57.0859C387.374 50.8566 386.012 45.5033 383.286 41.0259C380.561 36.5486 376.668 33.0933 371.606 30.6599C366.545 28.2266 360.51 27.0099 353.502 27.0099C346.592 27.0099 340.606 28.2266 335.544 30.6599C330.483 33.0933 326.59 36.5486 323.864 41.0259C321.139 45.5033 319.776 50.8566 319.776 57.0859C319.776 63.2179 321.139 68.5713 323.864 73.1459C326.59 77.6233 330.483 81.0786 335.544 83.5119C340.606 85.9453 346.592 87.1619 353.502 87.1619ZM463.549 15.6219H493.917V111.836H463.549V15.6219ZM421.793 2.33593H535.673V29.1999H421.793V2.33593ZM548.719 111.836V2.33593H578.503V95.9219L570.181 94.0239L632.231 2.33593H671.797V111.836H641.867V16.4979L650.335 18.3959L587.117 111.836H548.719Z" fill="white"/><path d="M733.613 67.3059H769.821L817.417 120.012H780.479L733.613 67.3059ZM752.447 114.172C739.502 114.172 728.114 111.787 718.283 107.018C708.55 102.249 700.958 95.5813 695.507 87.0159C690.154 78.4506 687.477 68.4739 687.477 57.0859C687.477 45.6979 690.154 35.7213 695.507 27.1559C700.958 18.5906 708.55 11.9233 718.283 7.15394C728.114 2.3846 739.502 0 752.447 0C765.49 0 776.878 2.3846 786.611 7.15394C796.345 11.9233 803.937 18.5906 809.387 27.1559C814.838 35.7213 817.563 45.6979 817.563 57.0859C817.563 68.4739 814.838 78.4506 809.387 87.0159C803.937 95.5813 796.345 102.249 786.611 107.018C776.878 111.787 765.49 114.172 752.447 114.172ZM752.447 87.1619C759.553 87.1619 765.685 85.9453 770.843 83.5119C776.002 81.0786 779.944 77.6233 782.669 73.1459C785.492 68.6686 786.903 63.3153 786.903 57.0859C786.903 50.8566 785.492 45.5033 782.669 41.0259C779.944 36.5486 776.002 33.0933 770.843 30.6599C765.685 28.2266 759.553 27.0099 752.447 27.0099C745.439 27.0099 739.356 28.2266 734.197 30.6599C729.039 33.0933 725.048 36.5486 722.225 41.0259C719.403 45.5033 717.991 50.8566 717.991 57.0859C717.991 63.3153 719.403 68.6686 722.225 73.1459C725.048 77.6233 729.039 81.0786 734.197 83.5119C739.356 85.9453 745.439 87.1619 752.447 87.1619Z" fill="#237EFF"/></svg><svg class="logo-light" width="140" height="21" viewBox="0 0 818 121" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.922 43.9459H71.248C80.4947 43.9459 88.0867 45.3573 94.024 48.1799C99.9613 51.0026 104.39 54.9933 107.31 60.1519C110.23 65.2133 111.69 71.1506 111.69 77.9639C111.69 84.7773 110.084 90.7633 106.872 95.9219C103.66 100.983 99.0367 104.925 93.002 107.748C86.9673 110.473 79.716 111.836 71.248 111.836H0L8.468 55.0419L0 2.33593H103.222V25.2579H18.834L30.368 11.3879L37.23 54.4579L29.784 103.66L18.25 89.7899H67.306C71.686 89.7899 75.1413 88.6706 77.672 86.4319C80.3 84.1933 81.614 81.1273 81.614 77.2339C81.614 73.2433 80.3 70.1773 77.672 68.0359C75.1413 65.7973 71.686 64.6779 67.306 64.6779H22.922V43.9459ZM126.26 111.836V2.33593H156.482V101.616L142.904 88.0379H185.536C190.5 88.0379 194.345 86.7726 197.07 84.2419C199.893 81.7113 201.304 78.3046 201.304 74.0219C201.304 69.6419 199.893 66.2353 197.07 63.8019C194.345 61.3686 190.5 60.1519 185.536 60.1519H140.276V36.2079H187.434C196.681 36.2079 204.614 37.8139 211.232 41.0259C217.948 44.1406 223.058 48.5206 226.562 54.1659C230.164 59.8113 231.964 66.4299 231.964 74.0219C231.964 81.6139 230.164 88.2813 226.562 94.0239C223.058 99.6693 217.948 104.049 211.232 107.164C204.614 110.279 196.681 111.836 187.434 111.836H126.26ZM353.503 114.172C340.655 114.172 329.413 111.787 319.777 107.018C310.141 102.249 302.646 95.5813 297.293 87.0159C292.037 78.4506 289.409 68.4739 289.409 57.0859C289.409 45.6979 292.037 35.7213 297.293 27.1559C302.646 18.5906 310.141 11.9233 319.777 7.15394C329.413 2.3846 340.655 0 353.503 0C366.448 0 377.739 2.3846 387.375 7.15394C397.011 11.9233 404.505 18.5906 409.859 27.1559C415.309 35.7213 418.035 45.6979 418.035 57.0859C418.035 68.4739 415.309 78.4506 409.859 87.0159C404.505 95.5813 397.011 102.249 387.375 107.018C377.739 111.787 366.448 114.172 353.503 114.172ZM245.171 111.836V2.33593H275.393V111.836H245.171ZM262.107 69.6419V42.7779H305.031V69.6419H262.107ZM353.503 87.1619C360.511 87.1619 366.545 85.9453 371.607 83.5119C376.668 81.0786 380.561 77.6233 383.287 73.1459C386.012 68.5713 387.375 63.2179 387.375 57.0859C387.375 50.8566 386.012 45.5033 383.287 41.0259C380.561 36.5486 376.668 33.0933 371.607 30.6599C366.545 28.2266 360.511 27.0099 353.503 27.0099C346.592 27.0099 340.606 28.2266 335.545 30.6599C330.483 33.0933 326.59 36.5486 323.865 41.0259C321.139 45.5033 319.777 50.8566 319.777 57.0859C319.777 63.2179 321.139 68.5713 323.865 73.1459C326.59 77.6233 330.483 81.0786 335.545 83.5119C340.606 85.9453 346.592 87.1619 353.503 87.1619ZM463.549 15.6219H493.917V111.836H463.549V15.6219ZM421.793 2.33593H535.673V29.1999H421.793V2.33593ZM548.719 111.836V2.33593H578.503V95.9219L570.181 94.0239L632.231 2.33593H671.797V111.836H641.867V16.4979L650.335 18.3959L587.117 111.836H548.719Z" fill="#0C0E27"/><path d="M733.614 67.3059H769.822L817.418 120.012H780.48L733.614 67.3059ZM752.448 114.172C739.502 114.172 728.114 111.787 718.284 107.018C708.55 102.249 700.958 95.5813 695.508 87.0159C690.154 78.4506 687.478 68.4739 687.478 57.0859C687.478 45.6979 690.154 35.7213 695.508 27.1559C700.958 18.5906 708.55 11.9233 718.284 7.15394C728.114 2.3846 739.502 0 752.448 0C765.49 0 776.878 2.3846 786.612 7.15394C796.345 11.9233 803.937 18.5906 809.388 27.1559C814.838 35.7213 817.564 45.6979 817.564 57.0859C817.564 68.4739 814.838 78.4506 809.388 87.0159C803.937 95.5813 796.345 102.249 786.612 107.018C776.878 111.787 765.49 114.172 752.448 114.172ZM752.448 87.1619C759.553 87.1619 765.685 85.9453 770.844 83.5119C776.002 81.0786 779.944 77.6233 782.67 73.1459C785.492 68.6686 786.904 63.3153 786.904 57.0859C786.904 50.8566 785.492 45.5033 782.67 41.0259C779.944 36.5486 776.002 33.0933 770.844 30.6599C765.685 28.2266 759.553 27.0099 752.448 27.0099C745.44 27.0099 739.356 28.2266 734.198 30.6599C729.039 33.0933 725.048 36.5486 722.226 41.0259C719.403 45.5033 717.992 50.8566 717.992 57.0859C717.992 63.3153 719.403 68.6686 722.226 73.1459C725.048 77.6233 729.039 81.0786 734.198 83.5119C739.356 85.9453 745.44 87.1619 752.448 87.1619Z" fill="#2448D5"/></svg></div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.5">Заполни один раз — буду писать в твоём стиле</p>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()">
+    <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+</div>
+<div class="progress"><div class="progress-fill" id="pf"></div></div>
+<div class="steps">
+
+<div class="step active" data-step="1">
+  <div class="s-label">Шаг 1 из 6</div>
+  <div class="s-title">Как называется салон?</div>
+  <div class="s-hint">Название и город — чтобы я знал с кем работаю</div>
+  <div class="field"><label class="flabel">Название</label><input type="text" id="salonName" placeholder="Например, Studio Nova"></div>
+  <div class="field"><label class="flabel">Город</label><input type="text" id="salonCity" placeholder="Москва, Казань, Алматы..."></div>
+  <div class="field"><label class="flabel">Сколько лет работаете?</label><input type="text" id="salonAge" placeholder="Например, 3 года"></div>
+</div>
+
+<div class="step" data-step="2">
+  <div class="s-label">Шаг 2 из 6</div>
+  <div class="s-title">Расскажите о себе</div>
+  <div class="s-hint">Своими словами — кто вы, как себя позиционируете, что делает вас особенными</div>
+  <div class="field"><textarea id="salonDesc" placeholder="Расскажите о себе, как вы себя позиционируете своим языком..." rows="6"></textarea></div>
+</div>
+
+<div class="step" data-step="3">
+  <div class="s-label">Шаг 3 из 6</div>
+  <div class="s-title">Услуги и аудитория</div>
+  <div class="s-hint">Кто приходит к вам и за чем</div>
+  <div class="field"><label class="flabel">Целевая аудитория</label><input type="text" id="audience" placeholder="Например, женщины 25–40, занятые мамы..."></div>
+  <div class="field"><label class="flabel">Основные услуги</label><textarea id="services" placeholder="Маникюр, брови, ресницы, уход за волосами..." rows="3"></textarea></div>
+</div>
+
+<div class="step" data-step="4">
+  <div class="s-label">Шаг 4 из 6</div>
+  <div class="s-title">Где и как вы общаетесь?</div>
+  <div class="s-hint">Выберите платформы и обращение к клиентам</div>
+  <div class="field">
+    <label class="flabel">Платформы</label>
+    <div class="cb-group" id="platGroup">
+      <label class="cb-item"><input type="checkbox" value="Instagram"><span>Instagram</span></label>
+      <label class="cb-item"><input type="checkbox" value="Telegram"><span>Telegram</span></label>
+      <label class="cb-item"><input type="checkbox" value="ВКонтакте"><span>ВКонтакте</span></label>
+      <label class="cb-item"><input type="checkbox" value="Сайт"><span>Сайт</span></label>
+      <label class="cb-item"><input type="checkbox" value="TikTok"><span>TikTok</span></label>
+      <label class="cb-item"><input type="checkbox" id="otherCb" onchange="toggleOther(this)"><span>Другое</span></label>
+    </div>
+    <div class="other-wrap" id="otherWrap"><input type="text" id="otherPlat" placeholder="Введи название платформы"></div>
+  </div>
+  <div class="field" style="margin-top:24px">
+    <label class="flabel">Обращение к клиентам</label>
+    <div class="rb-group">
+      <label class="rb-item"><input type="radio" name="addr" value="на ты"><span>На ты — близко, по-дружески</span></label>
+      <label class="rb-item"><input type="radio" name="addr" value="на вы"><span>На вы — уважительно, с дистанцией</span></label>
+    </div>
+  </div>
+</div>
+
+<div class="step" data-step="5">
+  <div class="s-label">Шаг 5 из 6</div>
+  <div class="s-title">Фирменные цвета</div>
+  <div class="s-hint">Введи HEX-коды — цвет появится сразу</div>
+  <div class="color-fields" id="colorFields">
+    <div class="color-row"><div class="color-prev" id="p0"></div><div class="color-ins"><div class="clabel">Акцентный цвет</div><input type="text" id="c0" placeholder="#2448D5" maxlength="7" oninput="upColor(this,'p0')"></div></div>
+    <div class="color-row"><div class="color-prev" id="p1"></div><div class="color-ins"><div class="clabel">Второй уровень акцентного цвета</div><input type="text" id="c1" placeholder="#237EFF" maxlength="7" oninput="upColor(this,'p1')"></div></div>
+    <div class="color-row"><div class="color-prev" id="p2"></div><div class="color-ins"><div class="clabel">Фоновый цвет для подложек</div><input type="text" id="c2" placeholder="#0C0E27" maxlength="7" oninput="upColor(this,'p2')"></div></div>
+  </div>
+  <button class="add-btn" onclick="addColor()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Добавить цвет</button>
+</div>
+
+<div class="step" data-step="6">
+  <div class="s-label">Шаг 6 из 6</div>
+  <div class="s-title">Примеры текстов</div>
+  <div class="s-hint">Вставь тексты которые вам нравятся — посты, сообщения, описания. Это поможет попасть в ваш голос</div>
+  <div class="ex-list" id="exList">
+    <div class="ex-item"><span class="ex-num">1.</span><textarea class="ex-t" placeholder="Вставь текст который вам нравится..."></textarea></div>
+    <div class="ex-item"><span class="ex-num">2.</span><textarea class="ex-t" placeholder="Ещё один пример (необязательно)..."></textarea></div>
+    <div class="ex-item"><span class="ex-num">3.</span><textarea class="ex-t" placeholder="И ещё один (необязательно)..."></textarea></div>
+  </div>
+  <button class="add-btn" onclick="addEx()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Добавить пример</button>
+</div>
+
+</div>
+<div class="nav">
+  <button class="btn-back" id="btnBack" onclick="prev()">← Назад</button>
+  <button class="btn-next" id="btnNext" onclick="next()">Продолжить →</button>
+</div>
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+let step=1,total=6,extraC=0,exCount=3;
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';}
+function upProg(){document.getElementById('pf').style.width=((step-1)/(total-1)*100)+'%';}
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.step[data-step="'+n+'"]').classList.add('active');
+  document.getElementById('btnBack').classList.toggle('on',n>1);
+  document.getElementById('btnNext').textContent=n===total?'Готово ✓':'Продолжить →';
+  upProg();window.scrollTo({top:0,behavior:'smooth'});
+}
+function next(){if(!validate(step))return;if(step<total){step++;showStep(step);}else submit();}
+function prev(){if(step>1){step--;showStep(step);}}
+function validate(n){
+  if(n===1){const a=document.getElementById('salonName').value.trim(),b=document.getElementById('salonCity').value.trim();if(!a||!b){alert('Заполни название и город');return false;}}
+  if(n===2){if(!document.getElementById('salonDesc').value.trim()){alert('Расскажи о салоне');return false;}}
+  return true;
+}
+function toggleOther(cb){const w=document.getElementById('otherWrap');w.classList.toggle('on',cb.checked);if(cb.checked)document.getElementById('otherPlat').focus();}
+function upColor(inp,pid){
+  let v=inp.value.trim();if(v&&!v.startsWith('#'))v='#'+v;
+  const ok=/^#([0-9A-Fa-f]{6})$/.test(v),el=document.getElementById(pid);
+  el.style.background=ok?v:'';el.style.borderColor=ok?v:'';
+}
+function addColor(){
+  extraC++;const i=3+extraC-1,cf=document.getElementById('colorFields');
+  const d=document.createElement('div');d.className='color-row';
+  d.innerHTML='<div class="color-prev" id="p'+i+'"></div><div class="color-ins"><input type="text" placeholder="Название (для чего используется)" style="margin-bottom:6px;font-size:13px;" id="cn'+i+'"><input type="text" placeholder="#FFFFFF" maxlength="7" oninput="upColor(this,\'p'+i+'\')" id="c'+i+'"></div>';
+  cf.appendChild(d);d.querySelector('#cn'+i).focus();
+}
+function addEx(){
+  exCount++;const l=document.getElementById('exList'),d=document.createElement('div');
+  d.className='ex-item';d.innerHTML='<span class="ex-num">'+exCount+'.</span><textarea class="ex-t" placeholder="Ещё один пример..."></textarea>';
+  l.appendChild(d);d.querySelector('textarea').focus();
+}
+function collectColors(){
+  const r=[],fn=['Акцентный цвет','Второй уровень акцентного цвета','Фоновый цвет для подложек'];
+  for(let i=0;i<3;i++){const v=(document.getElementById('c'+i)?.value||'').trim();if(v)r.push({name:fn[i],hex:v});}
+  for(let i=3;i<3+extraC;i++){const n=(document.getElementById('cn'+i)?.value||'').trim(),v=(document.getElementById('c'+i)?.value||'').trim();if(v)r.push({name:n||'Доп. цвет',hex:v});}
+  return r;
+}
+function collectPlats(){
+  const r=[...(document.querySelectorAll('#platGroup input[type=checkbox]:checked'))].filter(i=>i.id!=='otherCb').map(i=>i.value);
+  if(document.getElementById('otherCb').checked){const o=document.getElementById('otherPlat').value.trim();if(o)r.push(o);}
+  return r;
+}
+function submit(){
+  const data={
+    salonName:document.getElementById('salonName').value.trim(),
+    city:document.getElementById('salonCity').value.trim(),
+    age:document.getElementById('salonAge').value.trim(),
+    description:document.getElementById('salonDesc').value.trim(),
+    audience:document.getElementById('audience').value.trim(),
+    services:document.getElementById('services').value.trim(),
+    platforms:collectPlats(),
+    address:document.querySelector('input[name=addr]:checked')?.value||'',
+    colors:collectColors(),
+    examples:[...document.querySelectorAll('.ex-t')].map(t=>t.value.trim()).filter(Boolean)
+  };
+  if(tg){tg.sendData(JSON.stringify(data));}
+  else{console.log(data);alert('Готово!\n'+JSON.stringify(data,null,2));}
+}
+upProg();
+</script>
+</body>
+</html>
