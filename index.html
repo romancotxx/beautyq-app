@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>БьютиQ</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#2448D5;--accent-2:#237EFF;--r:20px;--rs:14px;--grad:linear-gradient(135deg,#2448D5,#237EFF)}
+[data-theme="dark"]{--bg:#0C0E27;--sur:#161830;--sur2:#1e2040;--brd:#262950;--txt:#f0f0f8;--mut:#8a8dae;--soft:rgba(35,126,255,.12);--tabbg:rgba(12,14,39,.85);--ok:#3ddc84;--warn:#ffb020}
+[data-theme="light"]{--bg:#eef0f4;--sur:#fff;--sur2:#f4f5f8;--brd:#e0e2ea;--txt:#0C0E27;--mut:#6b6e85;--soft:rgba(36,72,213,.07);--tabbg:rgba(255,255,255,.88);--ok:#1fa864;--warn:#d98a00}
+html{font-size:16px}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:calc(88px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:'Unbounded',sans-serif}
+.hide{display:none!important}
+
+/* ---------- loader ---------- */
+#loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:99}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--brd);border-top-color:var(--accent-2);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;bottom:calc(104px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:var(--sur2);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:12px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:98;max-width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- home ---------- */
+.page{padding:20px 16px 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.logo-w svg{display:block}
+.logo-d{display:none}.logo-l{display:block}
+[data-theme="dark"] .logo-d{display:block}[data-theme="dark"] .logo-l{display:none}
+.chip{font-size:11px;font-weight:600;padding:7px 12px;border-radius:99px;background:var(--sur);border:1px solid var(--brd);color:var(--mut);white-space:nowrap}
+.chip.ok{color:var(--ok);border-color:transparent;background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.chip.warn{color:var(--warn);border-color:transparent;background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.hello{font-size:22px;font-weight:700;line-height:1.25;margin-bottom:6px}
+.sub{font-size:14px;color:var(--mut);line-height:1.5;margin-bottom:20px}
+.hero{position:relative;border-radius:var(--r);background:var(--grad);padding:20px;color:#fff;overflow:hidden;margin-bottom:26px;box-shadow:0 10px 30px rgba(36,72,213,.35);cursor:pointer}
+.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero h3{font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.35}
+.hero p{font-size:12.5px;opacity:.85;line-height:1.5;max-width:250px}
+.hero .go{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:12.5px;font-weight:600;background:rgba(255,255,255,.16);padding:9px 14px;border-radius:99px}
+.sect{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:12px;font-family:'Unbounded',sans-serif}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:26px}
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:16px 14px;cursor:pointer;transition:transform .12s,border-color .2s;user-select:none}
+.card:active{transform:scale(.97)}
+.ico{width:42px;height:42px;border-radius:13px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:12px}
+.card b{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.card span{font-size:12px;color:var(--mut);line-height:1.45;display:block}
+.hints{display:flex;flex-direction:column;gap:8px;margin-bottom:26px}
+.hint{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);padding:12px 14px}
+.hint .hi{font-size:18px;flex-shrink:0}
+.hint div b{font-size:13px;font-weight:600;display:block;margin-bottom:2px}
+.hint div span{font-size:12px;color:var(--mut);line-height:1.4}
+
+/* ---------- profile ---------- */
+.ptitle{font-size:20px;font-weight:700;margin-bottom:4px}
+.psub{font-size:13px;color:var(--mut);margin-bottom:20px}
+.pcard{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.pcard .pl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.pcard .pv{font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.pv.muted{color:var(--mut);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:6px 11px;border-radius:99px;background:var(--soft);color:var(--accent-2);font-weight:500}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.swi{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut)}
+.dot{width:22px;height:22px;border-radius:8px;border:1px solid var(--brd);flex-shrink:0}
+.rowbtns{display:flex;gap:10px;margin:18px 0 8px}
+.btn{flex:1;padding:15px 18px;border:none;border-radius:var(--rs);font-family:'Unbounded',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:active{opacity:.75}
+.btn.prim{background:var(--grad);color:#fff;box-shadow:0 4px 16px rgba(36,72,213,.35)}
+.btn.sec{background:var(--sur);border:1px solid var(--brd);color:var(--txt);font-family:'Inter',sans-serif;font-weight:600}
+.stychip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600}
+.stychip .sdot{width:8px;height:8px;border-radius:50%}
+
+/* ---------- tabbar ---------- */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--tabbg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--brd);padding:10px 30px calc(12px + env(safe-area-inset-bottom));z-index:50}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--mut);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;padding:4px 0}
+.tab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--accent-2)}
+
+/* ---------- wizard ---------- */
+#wizard{position:fixed;inset:0;background:var(--bg);z-index:80;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:120px}
+.whead{padding:20px 20px 14px;display:flex;align-items:center;gap:12px}
+.wback{width:38px;height:38px;border-radius:50%;background:var(--sur);border:1px solid var(--brd);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wback svg{width:17px;height:17px;stroke:var(--txt);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.whead .wt{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700}
+.prog{height:3px;background:var(--brd);margin:0 20px;border-radius:99px;overflow:hidden}
+.progf{height:100%;background:var(--grad);width:0%;transition:width .4s;border-radius:99px}
+.steps{padding:0 20px}
+.step{display:none;padding-top:24px}.step.active{display:block}
+.slabel{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2);margin-bottom:6px}
+.stitle{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.shint{font-size:13px;color:var(--mut);margin-bottom:22px;line-height:1.5}
+.field{margin-bottom:14px}
+.fl{display:block;font-size:12px;font-weight:500;color:var(--mut);margin-bottom:7px}
+input[type=text],textarea{width:100%;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);color:var(--txt);font-family:'Inter',sans-serif;font-size:15px;padding:14px 16px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+input[type=text]:focus,textarea:focus{border-color:var(--accent-2)}
+textarea{resize:none;line-height:1.6;min-height:110px}
+input::placeholder,textarea::placeholder{color:var(--mut)}
+.cbg{display:flex;flex-direction:column;gap:8px}
+.cbi{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);cursor:pointer;transition:border-color .2s,background .2s;user-select:none}
+.cbi:has(input:checked){border-color:var(--accent-2);background:var(--soft)}
+.cbi input[type=checkbox]{width:19px;height:19px;border:1.5px solid var(--brd);border-radius:6px;background:transparent;-webkit-appearance:none;appearance:none;flex-shrink:0;cursor:pointer;position:relative;transition:.2s}
+.cbi input[type=checkbox]:checked{background:var(--accent-2);border-color:var(--accent-2)}
+.cbi input[type=checkbox]:checked::after{content:'';position:absolute;left:4px;top:1px;width:6px;height:10px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.cbi span{font-size:14px}
+.otherw{display:none;margin-top:8px}.otherw.on{display:block}
+.rbg{display:flex;flex-direction:column;gap:8px}
+.rbi{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);cursor:pointer;transition:.2s;user-select:none}
+.rbi:has(input:checked){border-color:var(--accent-2);background:var(--soft)}
+.rbi input[type=radio]{width:19px;height:19px;border:1.5px solid var(--brd);border-radius:50%;background:transparent;-webkit-appearance:none;appearance:none;flex-shrink:0;cursor:pointer;position:relative;transition:.2s}
+.rbi input[type=radio]:checked{border-color:var(--accent-2)}
+.rbi input[type=radio]:checked::after{content:'';position:absolute;left:3.5px;top:3.5px;width:8px;height:8px;border-radius:50%;background:var(--accent-2)}
+.rbi span{font-size:14px}
+.cfields{display:flex;flex-direction:column;gap:18px}
+.citem{display:flex;flex-direction:column;gap:8px}
+.clbl{font-size:11px;color:var(--mut);font-weight:500}
+.ccontrols{display:flex;align-items:center;gap:10px}
+.cbtn{width:50px;height:50px;border-radius:var(--rs);border:1.5px solid var(--brd);background:var(--sur);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;transition:border-color .2s}
+.cbtn svg{color:var(--mut);pointer-events:none;position:relative;z-index:1;transition:opacity .2s}
+.cbtn.filled svg{opacity:0}
+.cbtn input[type=color]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0}
+.chexw{flex:1}
+.chexw input{width:100%;background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--rs);color:var(--txt);font-family:'SF Mono','Fira Code',monospace;font-size:15px;padding:14px 16px;outline:none;-webkit-appearance:none;letter-spacing:.03em}
+.chexw input:focus{border-color:var(--accent-2)}
+.addbtn{display:flex;align-items:center;gap:8px;padding:13px 16px;background:transparent;border:1.5px dashed var(--brd);border-radius:var(--rs);color:var(--mut);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:.2s;width:100%;margin-top:8px}
+.addbtn:active{border-color:var(--accent-2);color:var(--accent-2)}
+.exlist{display:flex;flex-direction:column;gap:10px}
+.exitem{position:relative}
+.exnum{position:absolute;top:14px;left:16px;font-size:13px;font-weight:600;color:var(--accent-2);pointer-events:none;z-index:1}
+.exitem textarea{padding-left:36px;min-height:90px}
+.wnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:14px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent);display:flex;gap:10px;z-index:81}
+.btnback{padding:15px 20px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);color:var(--mut);font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;display:none;white-space:nowrap}
+.btnback.on{display:block}
+.btnnext{flex:1;padding:15px 20px;background:var(--grad);border:none;border-radius:var(--rs);color:#fff;font-family:'Unbounded',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;transition:opacity .2s;box-shadow:0 4px 16px rgba(36,72,213,.35)}
+.btnnext:active{opacity:.8}
+.btnnext:disabled{opacity:.5;cursor:default}
+.succ{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;padding:40px 20px;text-align:center}
+.succ.on{display:flex}
+.succico{width:76px;height:76px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 8px 24px rgba(36,72,213,.35)}
+.succico svg{width:34px;height:34px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.succ h2{font-size:18px;font-weight:700;margin-bottom:12px;line-height:1.3}
+.succ p{font-size:14px;color:var(--mut);line-height:1.6;max-width:290px}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="spin"></div></div>
+<div id="toast"></div>
+
+<!-- ================= HOME ================= -->
+<div class="page" id="pageHome">
+  <div class="top">
+    <div class="logo-w">
+      <svg class="logo-d" width="108" height="16" viewBox="0 0 818 121" fill="none"><path d="M22.9219 43.9459H71.2479C80.4946 43.9459 88.0866 45.3573 94.0239 48.1799C99.9613 51.0026 104.39 54.9933 107.31 60.1519C110.23 65.2133 111.69 71.1506 111.69 77.9639C111.69 84.7773 110.084 90.7633 106.872 95.9219C103.66 100.983 99.0366 104.925 93.0019 107.748C86.9673 110.473 79.7159 111.836 71.2479 111.836H0L8.46794 55.0419L0 2.33593H103.222V25.2579H18.8339L30.3679 11.3879L37.2299 54.4579L29.7839 103.66L18.2499 89.7899H67.3059C71.6859 89.7899 75.1413 88.6706 77.6719 86.4319C80.2999 84.1933 81.6139 81.1273 81.6139 77.2339C81.6139 73.2433 80.2999 70.1773 77.6719 68.0359C75.1413 65.7973 71.6859 64.6779 67.3059 64.6779H22.9219V43.9459ZM126.26 111.836V2.33593H156.482V101.616L142.904 88.0379H185.536C190.5 88.0379 194.345 86.7726 197.07 84.2419C199.893 81.7113 201.304 78.3046 201.304 74.0219C201.304 69.6419 199.893 66.2353 197.07 63.8019C194.345 61.3686 190.5 60.1519 185.536 60.1519H140.276V36.2079H187.434C196.681 36.2079 204.614 37.8139 211.232 41.0259C217.948 44.1406 223.058 48.5206 226.562 54.1659C230.164 59.8113 231.964 66.4299 231.964 74.0219C231.964 81.6139 230.164 88.2813 226.562 94.0239C223.058 99.6693 217.948 104.049 211.232 107.164C204.614 110.279 196.681 111.836 187.434 111.836H126.26ZM353.502 114.172C340.654 114.172 329.412 111.787 319.776 107.018C310.14 102.249 302.646 95.5813 297.292 87.0159C292.036 78.4506 289.408 68.4739 289.408 57.0859C289.408 45.6979 292.036 35.7213 297.292 27.1559C302.646 18.5906 310.14 11.9233 319.776 7.15394C329.412 2.3846 340.654 0 353.502 0C366.448 0 377.738 2.3846 387.374 7.15394C397.01 11.9233 404.505 18.5906 409.858 27.1559C415.309 35.7213 418.034 45.6979 418.034 57.0859C418.034 68.4739 415.309 78.4506 409.858 87.0159C404.505 95.5813 397.01 102.249 387.374 107.018C377.738 111.787 366.448 114.172 353.502 114.172ZM245.17 111.836V2.33593H275.392V111.836H245.17ZM262.106 69.6419V42.7779H305.03V69.6419H262.106ZM353.502 87.1619C360.51 87.1619 366.545 85.9453 371.606 83.5119C376.668 81.0786 380.561 77.6233 383.286 73.1459C386.012 68.5713 387.374 63.2179 387.374 57.0859C387.374 50.8566 386.012 45.5033 383.286 41.0259C380.561 36.5486 376.668 33.0933 371.606 30.6599C366.545 28.2266 360.51 27.0099 353.502 27.0099C346.592 27.0099 340.606 28.2266 335.544 30.6599C330.483 33.0933 326.59 36.5486 323.864 41.0259C321.139 45.5033 319.776 50.8566 319.776 57.0859C319.776 63.2179 321.139 68.5713 323.864 73.1459C326.59 77.6233 330.483 81.0786 335.544 83.5119C340.606 85.9453 346.592 87.1619 353.502 87.1619ZM463.549 15.6219H493.917V111.836H463.549V15.6219ZM421.793 2.33593H535.673V29.1999H421.793V2.33593ZM548.719 111.836V2.33593H578.503V95.9219L570.181 94.0239L632.231 2.33593H671.797V111.836H641.867V16.4979L650.335 18.3959L587.117 111.836H548.719Z" fill="white"/><path d="M733.613 67.3059H769.821L817.417 120.012H780.479L733.613 67.3059ZM752.447 114.172C739.502 114.172 728.114 111.787 718.283 107.018C708.55 102.249 700.958 95.5813 695.507 87.0159C690.154 78.4506 687.477 68.4739 687.477 57.0859C687.477 45.6979 690.154 35.7213 695.507 27.1559C700.958 18.5906 708.55 11.9233 718.283 7.15394C728.114 2.3846 739.502 0 752.447 0C765.49 0 776.878 2.3846 786.611 7.15394C796.345 11.9233 803.937 18.5906 809.387 27.1559C814.838 35.7213 817.563 45.6979 817.563 57.0859C817.563 68.4739 814.838 78.4506 809.387 87.0159C803.937 95.5813 796.345 102.249 786.611 107.018C776.878 111.787 765.49 114.172 752.447 114.172ZM752.447 87.1619C759.553 87.1619 765.685 85.9453 770.843 83.5119C776.002 81.0786 779.944 77.6233 782.669 73.1459C785.492 68.6686 786.903 63.3153 786.903 57.0859C786.903 50.8566 785.492 45.5033 782.669 41.0259C779.944 36.5486 776.002 33.0933 770.843 30.6599C765.685 28.2266 759.553 27.0099 752.447 27.0099C745.439 27.0099 739.356 28.2266 734.197 30.6599C729.039 33.0933 725.048 36.5486 722.225 41.0259C719.403 45.5033 717.991 50.8566 717.991 57.0859C717.991 63.3153 719.403 68.6686 722.225 73.1459C725.048 77.6233 729.039 81.0786 734.197 83.5119C739.356 85.9453 745.439 87.1619 752.447 87.1619Z" fill="#237EFF"/></svg>
+      <svg class="logo-l" width="108" height="16" viewBox="0 0 818 121" fill="none"><path d="M22.922 43.9459H71.248C80.4947 43.9459 88.0867 45.3573 94.024 48.1799C99.9613 51.0026 104.39 54.9933 107.31 60.1519C110.23 65.2133 111.69 71.1506 111.69 77.9639C111.69 84.7773 110.084 90.7633 106.872 95.9219C103.66 100.983 99.0367 104.925 93.002 107.748C86.9673 110.473 79.716 111.836 71.248 111.836H0L8.468 55.0419L0 2.33593H103.222V25.2579H18.834L30.368 11.3879L37.23 54.4579L29.784 103.66L18.25 89.7899H67.306C71.686 89.7899 75.1413 88.6706 77.672 86.4319C80.3 84.1933 81.614 81.1273 81.614 77.2339C81.614 73.2433 80.3 70.1773 77.672 68.0359C75.1413 65.7973 71.686 64.6779 67.306 64.6779H22.922V43.9459ZM126.26 111.836V2.33593H156.482V101.616L142.904 88.0379H185.536C190.5 88.0379 194.345 86.7726 197.07 84.2419C199.893 81.7113 201.304 78.3046 201.304 74.0219C201.304 69.6419 199.893 66.2353 197.07 63.8019C194.345 61.3686 190.5 60.1519 185.536 60.1519H140.276V36.2079H187.434C196.681 36.2079 204.614 37.8139 211.232 41.0259C217.948 44.1406 223.058 48.5206 226.562 54.1659C230.164 59.8113 231.964 66.4299 231.964 74.0219C231.964 81.6139 230.164 88.2813 226.562 94.0239C223.058 99.6693 217.948 104.049 211.232 107.164C204.614 110.279 196.681 111.836 187.434 111.836H126.26ZM353.503 114.172C340.655 114.172 329.413 111.787 319.777 107.018C310.141 102.249 302.646 95.5813 297.293 87.0159C292.037 78.4506 289.409 68.4739 289.409 57.0859C289.409 45.6979 292.037 35.7213 297.293 27.1559C302.646 18.5906 310.141 11.9233 319.777 7.15394C329.413 2.3846 340.655 0 353.503 0C366.448 0 377.739 2.3846 387.375 7.15394C397.011 11.9233 404.505 18.5906 409.859 27.1559C415.309 35.7213 418.035 45.6979 418.035 57.0859C418.035 68.4739 415.309 78.4506 409.859 87.0159C404.505 95.5813 397.011 102.249 387.375 107.018C377.739 111.787 366.448 114.172 353.503 114.172ZM245.171 111.836V2.33593H275.393V111.836H245.171ZM262.107 69.6419V42.7779H305.031V69.6419H262.107ZM353.503 87.1619C360.511 87.1619 366.545 85.9453 371.607 83.5119C376.668 81.0786 380.561 77.6233 383.287 73.1459C386.012 68.5713 387.375 63.2179 387.375 57.0859C387.375 50.8566 386.012 45.5033 383.287 41.0259C380.561 36.5486 376.668 33.0933 371.607 30.6599C366.545 28.2266 360.511 27.0099 353.503 27.0099C346.592 27.0099 340.606 28.2266 335.545 30.6599C330.483 33.0933 326.59 36.5486 323.865 41.0259C321.139 45.5033 319.777 50.8566 319.777 57.0859C319.777 63.2179 321.139 68.5713 323.865 73.1459C326.59 77.6233 330.483 81.0786 335.545 83.5119C340.606 85.9453 346.592 87.1619 353.503 87.1619ZM463.549 15.6219H493.917V111.836H463.549V15.6219ZM421.793 2.33593H535.673V29.1999H421.793V2.33593ZM548.719 111.836V2.33593H578.503V95.9219L570.181 94.0239L632.231 2.33593H671.797V111.836H641.867V16.4979L650.335 18.3959L587.117 111.836H548.719Z" fill="#0C0E27"/><path d="M733.614 67.3059H769.822L817.418 120.012H780.48L733.614 67.3059ZM752.448 114.172C739.502 114.172 728.114 111.787 718.284 107.018C708.55 102.249 700.958 95.5813 695.508 87.0159C690.154 78.4506 687.478 68.4739 687.478 57.0859C687.478 45.6979 690.154 35.7213 695.508 27.1559C700.958 18.5906 708.55 11.9233 718.284 7.15394C728.114 2.3846 739.502 0 752.448 0C765.49 0 776.878 2.3846 786.612 7.15394C796.345 11.9233 803.937 18.5906 809.388 27.1559C814.838 35.7213 817.564 45.6979 817.564 57.0859C817.564 68.4739 814.838 78.4506 809.388 87.0159C803.937 95.5813 796.345 102.249 786.612 107.018C776.878 111.787 765.49 114.172 752.448 114.172ZM752.448 87.1619C759.553 87.1619 765.685 85.9453 770.844 83.5119C776.002 81.0786 779.944 77.6233 782.67 73.1459C785.492 68.6686 786.904 63.3153 786.904 57.0859C786.904 50.8566 785.492 45.5033 782.67 41.0259C779.944 36.5486 776.002 33.0933 770.844 30.6599C765.685 28.2266 759.553 27.0099 752.448 27.0099C745.44 27.0099 739.356 28.2266 734.198 30.6599C729.039 33.0933 725.048 36.5486 722.226 41.0259C719.403 45.5033 717.992 50.8566 717.992 57.0859C717.992 63.3153 719.403 68.6686 722.226 73.1459C725.048 77.6233 729.039 81.0786 734.198 83.5119C739.356 85.9453 745.44 87.1619 752.448 87.1619Z" fill="#2448D5"/></svg>
+    </div>
+    <div class="chip" id="subChip">…</div>
+  </div>
+
+  <div class="hello" id="hello">Привет 👋</div>
+  <div class="sub">Я пишу посты, идеи и ответы на отзывы в голосе твоего салона. Выбирай, с чего начнём.</div>
+
+  <div class="hero" onclick="openChat()">
+    <h3>Проще всего — голосом</h3>
+    <p>Открой чат и наговори задачу. Я разберусь, что нужно, и напишу готовый текст.</p>
+    <div class="go">Открыть чат
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+
+  <div class="sect">Навыки</div>
+  <div class="grid">
+    <div class="card" onclick="runSkill('/post')">
+      <div class="ico">✍️</div>
+      <b>Написать пост</b>
+      <span>Готовый пост под площадку и услугу за минуту</span>
+    </div>
+    <div class="card" onclick="runSkill('/ideas')">
+      <div class="ico">💡</div>
+      <b>Идеи контента</b>
+      <span>Свежие темы и форматы под твой салон</span>
+    </div>
+    <div class="card" onclick="runSkill('/plan')">
+      <div class="ico">📅</div>
+      <b>Контент-план</b>
+      <span>Наговори пару мыслей — соберу план на месяц</span>
+    </div>
+    <div class="card" onclick="runSkill('/style')">
+      <div class="ico">🎨</div>
+      <b>Паспорт стиля</b>
+      <span>Научи меня писать голосом твоего салона</span>
+    </div>
+  </div>
+
+  <div class="sect">А ещё в чате</div>
+  <div class="hints">
+    <div class="hint"><div class="hi">🎙</div><div><b>Голосовые вместо текста</b><span>Наговори задачу как подруге — печатать не обязательно</span></div></div>
+    <div class="hint"><div class="hi">📷</div><div><b>Пост из фото</b><span>Пришли фото работы — опишу её и соберу пост</span></div></div>
+    <div class="hint"><div class="hi">💬</div><div><b>Ответы на отзывы</b><span>Скинь отзыв клиента — отвечу тактично и в твоём тоне</span></div></div>
+  </div>
+</div>
+
+<!-- ================= PROFILE ================= -->
+<div class="page hide" id="pageProfile">
+  <div class="ptitle" id="profTitle">Профиль</div>
+  <div class="psub">Чем точнее профиль, тем точнее я попадаю в голос салона</div>
+  <div id="profCards"></div>
+  <div class="rowbtns">
+    <button class="btn prim" onclick="openWizard(true)">✏️ Редактировать</button>
+  </div>
+</div>
+
+<!-- ================= TABBAR ================= -->
+<div class="tabbar" id="tabbar">
+  <button class="tab on" id="tabHome" onclick="showTab('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    Главная
+  </button>
+  <button class="tab" id="tabProfile" onclick="showTab('profile')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+    Профиль
+  </button>
+</div>
+
+<!-- ================= WIZARD ================= -->
+<div id="wizard" class="hide">
+<div class="whead">
+  <div class="wback" onclick="closeWizard()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+  <div class="wt" id="wizTitle">Анкета салона</div>
+</div>
+<div class="prog"><div class="progf" id="pf"></div></div>
+<div class="steps">
+
+<div class="step active" data-step="1">
+  <div class="slabel">Шаг 1 из 6</div>
+  <div class="stitle">Как называется салон?</div>
+  <div class="shint">Название и город, чтобы я знал, с кем работаю</div>
+  <div class="field"><label class="fl">Название</label><input type="text" id="salonName" placeholder="Например, Studio Nova"></div>
+  <div class="field"><label class="fl">Город</label><input type="text" id="salonCity" placeholder="Москва, Казань, Алматы..."></div>
+  <div class="field"><label class="fl">Сколько лет работаете?</label><input type="text" id="salonAge" placeholder="Например, 3 года"></div>
+  <div class="field" style="margin-top:22px">
+    <label class="cbi"><input type="checkbox" id="consentCb"><span>Я согласен(а) на обработку указанных данных для персонализации работы сервиса</span></label>
+    <div style="margin-top:8px"><a href="#" onclick="toggleConsent(event)" style="font-size:12px;color:var(--accent-2);text-decoration:none">Подробнее об использовании данных</a></div>
+    <div id="consentText" style="display:none;margin-top:8px;font-size:12px;color:var(--mut);line-height:1.6;padding:12px 14px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs)">Заполняя анкету, вы соглашаетесь с тем, что указанные вами данные (название и описание бизнеса, услуги, контактные предпочтения) будут храниться и использоваться сервисом БьютиQ исключительно для генерации персонализированных текстов под ваш бизнес. Данные не передаются третьим лицам и могут быть удалены по вашему запросу через команду /profile.</div>
+  </div>
+</div>
+
+<div class="step" data-step="2">
+  <div class="slabel">Шаг 2 из 6</div>
+  <div class="stitle">Расскажите о себе</div>
+  <div class="shint">Своими словами: кто вы, как себя позиционируете, что делает вас особенными</div>
+  <div class="field"><textarea id="salonDesc" placeholder="Расскажите о себе, как вы себя позиционируете, своим языком..." rows="6"></textarea></div>
+</div>
+
+<div class="step" data-step="3">
+  <div class="slabel">Шаг 3 из 6</div>
+  <div class="stitle">Услуги и аудитория</div>
+  <div class="shint">Кто приходит к вам и за чем</div>
+  <div class="field"><label class="fl">Целевая аудитория</label><input type="text" id="audience" placeholder="Например, женщины 25-40, занятые мамы..."></div>
+  <div class="field">
+    <label class="fl">Основные услуги</label>
+    <div class="cbg" id="svcGroup">
+      <label class="cbi"><input type="checkbox" value="Ногтевой сервис"><span>Ногтевой сервис</span></label>
+      <label class="cbi"><input type="checkbox" value="Брови и ресницы"><span>Брови и ресницы</span></label>
+      <label class="cbi"><input type="checkbox" value="Волосы и парикмахерские услуги"><span>Волосы и парикмахерские услуги</span></label>
+      <label class="cbi"><input type="checkbox" value="Эпиляция и депиляция"><span>Эпиляция и депиляция</span></label>
+      <label class="cbi"><input type="checkbox" value="Косметология и уход за кожей"><span>Косметология и уход за кожей</span></label>
+      <label class="cbi"><input type="checkbox" value="Уход за телом и SPA"><span>Уход за телом и SPA</span></label>
+      <label class="cbi"><input type="checkbox" value="Визаж"><span>Визаж</span></label>
+    </div>
+    <div class="exlist" id="svcExtraList" style="margin-top:8px"></div>
+    <button type="button" class="addbtn" onclick="addService()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Добавить услугу</button>
+  </div>
+</div>
+
+<div class="step" data-step="4">
+  <div class="slabel">Шаг 4 из 6</div>
+  <div class="stitle">Где и как вы общаетесь?</div>
+  <div class="shint">Выберите платформы и обращение к клиентам</div>
+  <div class="field">
+    <label class="fl">Платформы</label>
+    <div class="cbg" id="platGroup">
+      <label class="cbi"><input type="checkbox" value="Instagram"><span>Instagram</span></label>
+      <label class="cbi"><input type="checkbox" value="Telegram"><span>Telegram</span></label>
+      <label class="cbi"><input type="checkbox" value="ВКонтакте"><span>ВКонтакте</span></label>
+      <label class="cbi"><input type="checkbox" value="Сайт"><span>Сайт</span></label>
+      <label class="cbi"><input type="checkbox" value="TikTok"><span>TikTok</span></label>
+      <label class="cbi"><input type="checkbox" id="otherCb" onchange="toggleOther(this)"><span>Другое</span></label>
+    </div>
+    <div class="otherw" id="otherWrap"><input type="text" id="otherPlat" placeholder="Введи название платформы"></div>
+  </div>
+  <div class="field" style="margin-top:22px">
+    <label class="fl">Обращение к клиентам</label>
+    <div class="rbg">
+      <label class="rbi"><input type="radio" name="addr" value="на ты"><span>На ты — близко, по-дружески</span></label>
+      <label class="rbi"><input type="radio" name="addr" value="на вы"><span>На вы — уважительно, с дистанцией</span></label>
+    </div>
+  </div>
+</div>
+
+<div class="step" data-step="5">
+  <div class="slabel">Шаг 5 из 6</div>
+  <div class="stitle">Фирменные цвета</div>
+  <div class="shint">Нажми на иконку, чтобы выбрать цвет, или введи HEX-код</div>
+  <div class="cfields" id="colorFields">
+    <div class="citem" id="ci0">
+      <div class="clbl"><b>Акцентный</b> цвет</div>
+      <div class="ccontrols">
+        <div class="cbtn" id="cb0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2c5.498 0 10 4.002 10 9c0 1.351-.6 2.64-1.654 3.576c-1.03.914-2.412 1.424-3.846 1.424h-2.516a1 1 0 0 0-.5 1.875a1 1 0 0 1 .194.14a2.3 2.3 0 0 1-1.597 3.99l-.156-.009l.068.004l-.273-.004c-5.3-.146-9.57-4.416-9.716-9.716l-.004-.28c0-5.523 4.477-10 10-10m-3.5 6.5a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m8 0a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m-4-3a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2"/></svg><input type="color" id="cp0" value="#2448D5" oninput="fromPicker(0)"></div>
+        <div class="chexw"><input type="text" id="ch0" placeholder="#2448D5" maxlength="7" oninput="fromHex(0)"></div>
+      </div>
+    </div>
+    <div class="citem" id="ci1">
+      <div class="clbl"><b>Фоновый</b> цвет для подложек</div>
+      <div class="ccontrols">
+        <div class="cbtn" id="cb1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2c5.498 0 10 4.002 10 9c0 1.351-.6 2.64-1.654 3.576c-1.03.914-2.412 1.424-3.846 1.424h-2.516a1 1 0 0 0-.5 1.875a1 1 0 0 1 .194.14a2.3 2.3 0 0 1-1.597 3.99l-.156-.009l.068.004l-.273-.004c-5.3-.146-9.57-4.416-9.716-9.716l-.004-.28c0-5.523 4.477-10 10-10m-3.5 6.5a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m8 0a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m-4-3a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2"/></svg><input type="color" id="cp1" value="#0C0E27" oninput="fromPicker(1)"></div>
+        <div class="chexw"><input type="text" id="ch1" placeholder="#0C0E27" maxlength="7" oninput="fromHex(1)"></div>
+      </div>
+    </div>
+  </div>
+  <button class="addbtn" onclick="addColor()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Добавить цвет</button>
+</div>
+
+<div class="step" data-step="6">
+  <div class="slabel">Шаг 6 из 6</div>
+  <div class="stitle">Примеры текстов</div>
+  <div class="shint">Вставь тексты, которые вам нравятся: посты, сообщения, описания. Это поможет попасть в ваш голос</div>
+  <div class="exlist" id="exList">
+    <div class="exitem"><span class="exnum">1.</span><textarea class="ext" placeholder="Вставь текст, который вам нравится..."></textarea></div>
+    <div class="exitem"><span class="exnum">2.</span><textarea class="ext" placeholder="Ещё один пример (необязательно)..."></textarea></div>
+    <div class="exitem"><span class="exnum">3.</span><textarea class="ext" placeholder="И ещё один (необязательно)..."></textarea></div>
+  </div>
+  <button class="addbtn" onclick="addEx()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Добавить пример</button>
+</div>
+
+<div class="succ" id="succScreen">
+  <div class="succico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <h2 id="succTitle">Приятно познакомиться! 👋</h2>
+  <p id="succText">Всё сохранено. Возвращайся в чат — я готов писать в стиле твоего салона</p>
+</div>
+
+</div>
+<div class="wnav" id="wnav">
+  <button class="btnback" id="btnBack" onclick="prev()">← Назад</button>
+  <button class="btnnext" id="btnNext" onclick="next()">Продолжить →</button>
+</div>
+</div>
+
+<script>
+/* ================= core ================= */
+var API = 'https://romancot.app.n8n.cloud/webhook/beautyq-app';
+var BOT_LINK = 'https://t.me/BeatyQ_Assistant_Bot';
+var tg = window.Telegram && window.Telegram.WebApp;
+var KB_MODE = /[?&]src=kb/.test(location.search); // запуск с reply-клавиатуры: отправка через sendData
+var profile = null, subscription = null;
+var editMode = false;
+
+if (tg) {
+  tg.ready(); tg.expand();
+  applyTheme();
+  tg.onEvent('themeChanged', applyTheme);
+}
+function applyTheme() {
+  var scheme = (tg && tg.colorScheme) || 'dark';
+  document.documentElement.dataset.theme = scheme;
+  if (tg && tg.setHeaderColor) try { tg.setHeaderColor(scheme === 'dark' ? '#0C0E27' : '#eef0f4'); } catch (e) {}
+  if (tg && tg.setBackgroundColor) try { tg.setBackgroundColor(scheme === 'dark' ? '#0C0E27' : '#eef0f4'); } catch (e) {}
+}
+function haptic(kind) {
+  if (tg && tg.HapticFeedback) try { tg.HapticFeedback.impactOccurred(kind || 'light'); } catch (e) {}
+}
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('on'); }, 2600);
+}
+function openChat() { haptic(); if (tg) tg.close(); else location.href = BOT_LINK; }
+
+/* ================= boot ================= */
+function boot() {
+  var name = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) || '';
+  document.getElementById('hello').textContent = name ? 'Привет, ' + name + ' 👋' : 'Привет 👋';
+
+  if (KB_MODE) { // онбординг с клавиатуры: сразу анкета, без API
+    hideLoader();
+    openWizard(false);
+    return;
+  }
+  if (!tg || !tg.initData) { // открыто в браузере
+    hideLoader();
+    renderSubChip();
+    return;
+  }
+  fetch(API + '?initData=' + encodeURIComponent(tg.initData))
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) { profile = d.profile; subscription = d.subscription; }
+      hideLoader();
+      renderSubChip();
+      renderProfile();
+      if (!profile) openWizard(false); // первый запуск: сразу знакомимся
+    })
+    .catch(function () { hideLoader(); renderSubChip(); toast('Не получилось загрузить профиль. Проверь интернет'); });
+}
+function hideLoader() { document.getElementById('loader').classList.add('hide'); }
+
+/* ================= subscription chip ================= */
+function fmtDate(s) {
+  try { return new Date(s).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }); } catch (e) { return ''; }
+}
+function subInfo() {
+  if (!subscription || !subscription.status) return { label: 'Пробный период', cls: 'ok' };
+  var st = String(subscription.status).toLowerCase();
+  var now = new Date();
+  if (st === 'manual') return { label: 'Полный доступ', cls: 'ok' };
+  if (st === 'active' && subscription.paid_until && new Date(subscription.paid_until) >= now)
+    return { label: 'Подписка до ' + fmtDate(subscription.paid_until), cls: 'ok' };
+  if (subscription.trial_until && new Date(subscription.trial_until) >= now)
+    return { label: 'Пробный до ' + fmtDate(subscription.trial_until), cls: 'ok' };
+  return { label: 'Подписка неактивна', cls: 'warn' };
+}
+function renderSubChip() {
+  var i = subInfo();
+  var c = document.getElementById('subChip');
+  c.textContent = i.label; c.className = 'chip ' + i.cls;
+}
+
+/* ================= tabs ================= */
+function showTab(t) {
+  haptic();
+  document.getElementById('pageHome').classList.toggle('hide', t !== 'home');
+  document.getElementById('pageProfile').classList.toggle('hide', t !== 'profile');
+  document.getElementById('tabHome').classList.toggle('on', t === 'home');
+  document.getElementById('tabProfile').classList.toggle('on', t === 'profile');
+  window.scrollTo(0, 0);
+}
+
+/* ================= skills ================= */
+/* deep link t.me/bot?start=<навык> — Telegram сам отправит команду в чат */
+function runSkill(cmd) {
+  haptic('medium');
+  var url = BOT_LINK + '?start=' + cmd.replace('/', '');
+  if (tg && tg.openTelegramLink) { tg.openTelegramLink(url); }
+  else { location.href = url; }
+}
+
+/* ================= profile render ================= */
+function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function pcard(label, html) { return '<div class="pcard"><div class="pl">' + label + '</div>' + html + '</div>'; }
+function pval(v, hint) {
+  return v ? '<div class="pv">' + esc(v) + '</div>' : '<div class="pv muted">' + hint + '</div>';
+}
+function ptags(csv, hint) {
+  var arr = String(csv || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  if (!arr.length) return '<div class="pv muted">' + hint + '</div>';
+  return '<div class="tags">' + arr.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>';
+}
+function pcolors(str) {
+  var items = String(str || '').split(';').map(function (s) { return s.trim(); }).filter(Boolean);
+  if (!items.length) return '<div class="pv muted">Добавь фирменные цвета — пригодятся для идей визуала</div>';
+  return '<div class="sw">' + items.map(function (it) {
+    var m = it.match(/(#[0-9A-Fa-f]{6})/); var name = it.split(':')[0];
+    return '<span class="swi"><span class="dot" style="background:' + (m ? m[1] : 'transparent') + '"></span>' + esc(name) + '</span>';
+  }).join('') + '</div>';
+}
+function renderProfile() {
+  var box = document.getElementById('profCards');
+  if (!profile) {
+    document.getElementById('profTitle').textContent = 'Давай знакомиться';
+    box.innerHTML = pcard('Анкета', '<div class="pv muted">Расскажи о салоне один раз — и каждый текст будет в твоём стиле. Это 3 минуты.</div>');
+    return;
+  }
+  document.getElementById('profTitle').textContent = profile.salon_name || 'Профиль';
+  var meta = [profile.city, profile.age].filter(Boolean).join(' · ');
+  var exCount = String(profile.examples || '').split(/\n(?=\d+\.\s)/).filter(function (s) { return s.trim(); }).length;
+  var sp = profile.style_passport && String(profile.style_passport).trim();
+  var si = subInfo();
+  box.innerHTML =
+    (meta ? pcard('Салон', '<div class="pv">' + esc(meta) + '</div>') : '') +
+    pcard('О салоне', pval(profile.description, 'Расскажи о себе — тексты станут личнее')) +
+    pcard('Аудитория', pval(profile.audience, 'Опиши, кто твои клиенты')) +
+    pcard('Услуги', ptags(profile.services, 'Отметь услуги — буду писать по делу')) +
+    pcard('Платформы', ptags(profile.platforms, 'Где ведёшь соцсети?')) +
+    pcard('Обращение к клиентам', pval(profile.address, 'На ты или на вы?')) +
+    pcard('Фирменные цвета', pcolors(profile.colors)) +
+    pcard('Примеры текстов', exCount
+      ? '<div class="pv">' + exCount + ' ' + plural(exCount, 'пример', 'примера', 'примеров') + ' сохранено</div>'
+      : '<div class="pv muted">Добавь любимые тексты — помогу попасть в голос</div>') +
+    pcard('Паспорт стиля', sp
+      ? '<span class="stychip"><span class="sdot" style="background:var(--ok)"></span>Создан — я пишу твоим голосом</span>'
+      : '<span class="stychip" style="cursor:pointer" onclick="runSkill(\'/style\')"><span class="sdot" style="background:var(--warn)"></span>Ещё нет · Создать за 5 минут →</span>') +
+    pcard('Подписка', '<span class="stychip"><span class="sdot" style="background:var(--' + (si.cls === 'ok' ? 'ok' : 'warn') + ')"></span>' + esc(si.label) + '</span>');
+}
+function plural(n, a, b, c) {
+  var m = n % 100; if (m >= 11 && m <= 14) return c;
+  m = n % 10; if (m === 1) return a; if (m >= 2 && m <= 4) return b; return c;
+}
+
+/* ================= wizard ================= */
+var step = 1, total = 6, extraC = 0, exCnt = 3, svcExtraCnt = 0;
+var PRESET_SVC = ['Ногтевой сервис', 'Брови и ресницы', 'Волосы и парикмахерские услуги', 'Эпиляция и депиляция', 'Косметология и уход за кожей', 'Уход за телом и SPA', 'Визаж'];
+var PRESET_PLAT = ['Instagram', 'Telegram', 'ВКонтакте', 'Сайт', 'TikTok'];
+
+function openWizard(edit) {
+  haptic();
+  editMode = !!edit;
+  document.getElementById('wizard').classList.remove('hide');
+  document.getElementById('tabbar').classList.add('hide');
+  document.getElementById('wizTitle').textContent = editMode ? 'Обновить профиль' : 'Знакомство';
+  if (editMode && profile) prefill();
+  step = 1; showStep(1);
+}
+function closeWizard() {
+  haptic();
+  if (KB_MODE || !profile) { // некуда возвращаться: онбординг
+    if (tg) tg.close();
+    return;
+  }
+  document.getElementById('wizard').classList.add('hide');
+  document.getElementById('tabbar').classList.remove('hide');
+}
+function prefill() {
+  var p = profile;
+  document.getElementById('salonName').value = p.salon_name || '';
+  document.getElementById('salonCity').value = p.city || '';
+  document.getElementById('salonAge').value = p.age || '';
+  document.getElementById('salonDesc').value = p.description || '';
+  document.getElementById('audience').value = p.audience || '';
+  document.getElementById('consentCb').checked = !!(p.consent && String(p.consent).indexOf('да') === 0);
+  // услуги
+  var svc = String(p.services || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  document.querySelectorAll('#svcGroup input[type=checkbox]').forEach(function (i) { i.checked = svc.indexOf(i.value) >= 0; });
+  svc.filter(function (s) { return PRESET_SVC.indexOf(s) < 0; }).forEach(function (s) { addService(s); });
+  // платформы
+  var plats = String(p.platforms || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  var extra = [];
+  document.querySelectorAll('#platGroup input[type=checkbox]').forEach(function (i) {
+    if (i.id !== 'otherCb') i.checked = plats.indexOf(i.value) >= 0;
+  });
+  plats.forEach(function (pl) { if (PRESET_PLAT.indexOf(pl) < 0) extra.push(pl); });
+  if (extra.length) {
+    var oc = document.getElementById('otherCb'); oc.checked = true; toggleOther(oc);
+    document.getElementById('otherPlat').value = extra.join(', ');
+  }
+  // обращение
+  document.querySelectorAll('input[name=addr]').forEach(function (r) { r.checked = r.value === p.address; });
+  // цвета
+  var cols = String(p.colors || '').split(';').map(function (s) { return s.trim(); }).filter(Boolean);
+  cols.forEach(function (c, idx) {
+    var parts = c.split(':'); var name = (parts[0] || '').trim(); var hex = (parts[1] || '').trim();
+    if (idx < 2) {
+      var h = document.getElementById('ch' + idx); if (h) { h.value = hex; fromHex(idx); }
+    } else {
+      addColor(); var i = 2 + extraC - 1;
+      document.getElementById('cn' + i).value = name;
+      document.getElementById('ch' + i).value = hex; fromHex(i);
+    }
+  });
+  // примеры
+  var exs = String(p.examples || '').split(/\n(?=\d+\.\s)/).map(function (s) { return s.replace(/^\d+\.\s*/, '').trim(); }).filter(Boolean);
+  var areas = document.querySelectorAll('.ext');
+  exs.forEach(function (t, i) {
+    if (i < areas.length) areas[i].value = t; else { addEx(); document.querySelectorAll('.ext')[i].value = t; }
+  });
+}
+function upProg() { document.getElementById('pf').style.width = ((step - 1) / (total - 1) * 100) + '%'; }
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(function (s) { s.classList.remove('active'); });
+  document.querySelector('.step[data-step="' + n + '"]').classList.add('active');
+  document.getElementById('btnBack').classList.toggle('on', n > 1);
+  document.getElementById('btnNext').textContent = n === total ? (editMode ? 'Сохранить' : 'Готово') : 'Продолжить →';
+  upProg();
+  document.getElementById('wizard').scrollTo({ top: 0, behavior: 'smooth' });
+}
+function next() { haptic(); if (!validate(step)) return; if (step < total) { step++; showStep(step); } else { doSubmit(); } }
+function prev() { haptic(); if (step > 1) { step--; showStep(step); } }
+function validate(n) {
+  if (n === 1) {
+    if (!document.getElementById('salonName').value.trim() || !document.getElementById('salonCity').value.trim()) { toast('Заполни название и город'); return false; }
+    if (!document.getElementById('consentCb').checked) { toast('Для продолжения нужно согласие на обработку данных'); return false; }
+  }
+  if (n === 2 && !document.getElementById('salonDesc').value.trim()) { toast('Расскажи о салоне'); return false; }
+  return true;
+}
+function toggleOther(cb) {
+  document.getElementById('otherWrap').classList.toggle('on', cb.checked);
+  if (cb.checked) document.getElementById('otherPlat').focus();
+}
+function toggleConsent(e) {
+  e.preventDefault();
+  var t = document.getElementById('consentText');
+  t.style.display = t.style.display === 'none' ? 'block' : 'none';
+}
+function isHex(v) { return /^#([0-9A-Fa-f]{6})$/.test(v); }
+function applyColor(val, idx) {
+  var ok = isHex(val); var btn = document.getElementById('cb' + idx);
+  if (btn) { if (ok) { btn.classList.add('filled'); btn.style.background = val; } else { btn.classList.remove('filled'); btn.style.background = ''; } }
+}
+function fromPicker(idx) {
+  var v = document.getElementById('cp' + idx).value;
+  var hex = document.getElementById('ch' + idx); if (hex) hex.value = v;
+  applyColor(v, idx);
+}
+function fromHex(idx) {
+  var v = document.getElementById('ch' + idx).value.trim();
+  if (v && v[0] !== '#') v = '#' + v;
+  var picker = document.getElementById('cp' + idx);
+  if (picker && isHex(v)) picker.value = v;
+  applyColor(v, idx);
+}
+var PALETTE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2c5.498 0 10 4.002 10 9c0 1.351-.6 2.64-1.654 3.576c-1.03.914-2.412 1.424-3.846 1.424h-2.516a1 1 0 0 0-.5 1.875a1 1 0 0 1 .194.14a2.3 2.3 0 0 1-1.597 3.99l-.156-.009l.068.004l-.273-.004c-5.3-.146-9.57-4.416-9.716-9.716l-.004-.28c0-5.523 4.477-10 10-10m-3.5 6.5a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m8 0a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2m-4-3a2 2 0 0 0-1.995 1.85l-.005.15a2 2 0 1 0 2-2"/></svg>';
+function addColor() {
+  extraC++;
+  var i = 2 + extraC - 1;
+  var cf = document.getElementById('colorFields');
+  var d = document.createElement('div');
+  d.className = 'citem'; d.id = 'ci' + i;
+  d.innerHTML = '<div class="clbl">Дополнительный цвет</div>'
+    + '<div class="ccontrols">'
+    + '<div class="cbtn" id="cb' + i + '">' + PALETTE_SVG + '<input type="color" id="cp' + i + '" value="#ffffff" oninput="fromPicker(' + i + ')"></div>'
+    + '<div class="chexw"><input type="text" id="ch' + i + '" placeholder="#FFFFFF" maxlength="7" oninput="fromHex(' + i + ')"></div>'
+    + '</div>'
+    + '<input type="text" id="cn' + i + '" placeholder="Название цвета (для чего используется)" style="margin-top:8px;width:100%;background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:13px;padding:10px 14px;outline:none">';
+  cf.appendChild(d);
+}
+function addEx() {
+  exCnt++;
+  var l = document.getElementById('exList');
+  var d = document.createElement('div');
+  d.className = 'exitem';
+  d.innerHTML = '<span class="exnum">' + exCnt + '.</span><textarea class="ext" placeholder="Ещё один пример..."></textarea>';
+  l.appendChild(d);
+}
+function addService(val) {
+  svcExtraCnt++;
+  var l = document.getElementById('svcExtraList');
+  var d = document.createElement('div');
+  d.className = 'exitem';
+  d.innerHTML = '<input type="text" class="svcExtra" placeholder="Своя услуга, которой нет в списке...">';
+  l.appendChild(d);
+  if (typeof val === 'string') d.querySelector('input').value = val;
+}
+function collectColors() {
+  var r = [], fn = ['Акцентный цвет', 'Фоновый цвет для подложек'];
+  for (var i = 0; i < 2; i++) {
+    var v = (document.getElementById('ch' + i) ? document.getElementById('ch' + i).value : '').trim();
+    if (v) r.push({ name: fn[i], hex: v });
+  }
+  for (var j = 2; j < 2 + extraC; j++) {
+    var n = (document.getElementById('cn' + j) ? document.getElementById('cn' + j).value : '').trim();
+    var v2 = (document.getElementById('ch' + j) ? document.getElementById('ch' + j).value : '').trim();
+    if (v2) r.push({ name: n || 'Доп. цвет', hex: v2 });
+  }
+  return r;
+}
+function collectServices() {
+  var r = [];
+  document.querySelectorAll('#svcGroup input[type=checkbox]:checked').forEach(function (i) { r.push(i.value); });
+  document.querySelectorAll('.svcExtra').forEach(function (i) { if (i.value.trim()) r.push(i.value.trim()); });
+  return r;
+}
+function collectPlats() {
+  var r = [];
+  document.querySelectorAll('#platGroup input[type=checkbox]:checked').forEach(function (i) { if (i.id !== 'otherCb') r.push(i.value); });
+  var oc = document.getElementById('otherCb');
+  if (oc && oc.checked) {
+    document.getElementById('otherPlat').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (s) { r.push(s); });
+  }
+  return r;
+}
+function collectData() {
+  var examples = [];
+  document.querySelectorAll('.ext').forEach(function (t) { if (t.value.trim()) examples.push(t.value.trim()); });
+  return {
+    salonName: document.getElementById('salonName').value.trim(),
+    city: document.getElementById('salonCity').value.trim(),
+    age: document.getElementById('salonAge').value.trim(),
+    description: document.getElementById('salonDesc').value.trim(),
+    audience: document.getElementById('audience').value.trim(),
+    services: collectServices(),
+    platforms: collectPlats(),
+    address: (document.querySelector('input[name=addr]:checked') || {}).value || '',
+    colors: collectColors(),
+    examples: examples,
+    consent: document.getElementById('consentCb').checked ? 'да, ' + new Date().toISOString() : ''
+  };
+}
+function doSubmit() {
+  var data = collectData();
+  var btn = document.getElementById('btnNext');
+  if (KB_MODE && tg) { // запуск с reply-клавиатуры: старый добрый sendData, бот сам ответит в чате
+    tg.sendData(JSON.stringify(data));
+    showSuccess();
+    return;
+  }
+  if (!tg || !tg.initData) { toast('Открой приложение из Telegram'); return; }
+  btn.disabled = true; btn.textContent = 'Сохраняю...';
+  fetch(API, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'save_profile', profile: data, initData: tg.initData })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      btn.disabled = false;
+      if (d && d.ok) {
+        haptic('medium');
+        if (editMode) {
+          // обновляем локальный кэш и возвращаемся в профиль
+          profile = profile || {};
+          profile.salon_name = data.salonName; profile.city = data.city; profile.age = data.age;
+          profile.description = data.description; profile.audience = data.audience;
+          profile.services = data.services.join(', '); profile.platforms = data.platforms.join(', ');
+          profile.address = data.address;
+          profile.colors = data.colors.map(function (c) { return c.name + ': ' + c.hex; }).join('; ');
+          profile.examples = data.examples.map(function (t, i) { return (i + 1) + '. ' + t; }).join('\n');
+          renderProfile();
+          closeWizard();
+          showTab('profile');
+          toast('Профиль обновлён ✨');
+          btn.textContent = 'Сохранить';
+        } else {
+          showSuccess();
+        }
+      } else { btn.disabled = false; btn.textContent = 'Сохранить'; toast('Не сохранилось. Попробуй ещё раз'); }
+    })
+    .catch(function () { btn.disabled = false; btn.textContent = 'Сохранить'; toast('Не сохранилось. Проверь интернет'); });
+}
+function showSuccess() {
+  document.querySelectorAll('.step').forEach(function (s) { s.classList.remove('active'); });
+  document.getElementById('pf').style.width = '100%';
+  document.getElementById('succScreen').classList.add('on');
+  document.getElementById('wnav').style.display = 'none';
+  setTimeout(function () { if (tg) tg.close(); }, 1800);
+}
+
+boot();
+</script>
+</body>
+</html>
