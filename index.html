@@ -217,24 +217,24 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 
   <div class="sect">Навыки</div>
   <div class="grid">
-    <div class="card" role="button" tabindex="0" onclick="runSkill('/post')">
+    <div class="card" role="button" tabindex="0" onclick="runSkill('post')">
       <div class="ico">✍️</div>
       <b>Написать пост</b>
       <span>Готовый пост под площадку и услугу за минуту</span>
     </div>
-    <div class="card" role="button" tabindex="0" onclick="runSkill('/ideas')">
+    <div class="card" role="button" tabindex="0" onclick="runSkill('ideas')">
       <div class="ico">💡</div>
       <b>Идеи контента</b>
       <span>Свежие темы и форматы под твой салон</span>
     </div>
-    <div class="card" role="button" tabindex="0" onclick="runSkill('/plan')">
+    <div class="card" role="button" tabindex="0" onclick="runSkill('plan')">
       <div class="ico">📅</div>
       <b>Контент-план</b>
       <span>Наговори пару мыслей — соберу план на месяц</span>
     </div>
-    <div class="card" role="button" tabindex="0" onclick="runSkill('/style')">
+    <div class="card" role="button" tabindex="0" onclick="runSkill('style')">
       <div class="ico">🎨</div>
-      <b>Паспорт стиля</b>
+      <b>Изучение твоего стиля</b>
       <span>Научи меня писать голосом твоего салона</span>
     </div>
     <div class="card soon" aria-disabled="true">
@@ -457,6 +457,7 @@ var BOT_LINK = 'https://t.me/BeatyQ_Assistant_Bot';
 var DRAFT_KEY = 'bq_draft_v1';
 var tg = window.Telegram && window.Telegram.WebApp;
 var KB_MODE = /[?&]src=kb/.test(location.search); // запуск с reply-клавиатуры: отправка через sendData
+var HOME_MODE = /[?&]home=1/.test(location.search); // reply-запуск на экран навыков (не онбординг)
 var useNative = false; // нативные MainButton/BackButton Telegram
 var profile = null, subscription = null;
 var loadState = 'loading'; // loading | ok | error | anon
@@ -514,8 +515,15 @@ function boot() {
   document.getElementById('cb0').insertAdjacentHTML('afterbegin', PALETTE_SVG);
   document.getElementById('cb1').insertAdjacentHTML('afterbegin', PALETTE_SVG);
 
-  if (KB_MODE) { // онбординг с reply-клавиатуры: бот сам попросил открыть анкету
-    openWizard(false);
+  if (KB_MODE) { // запуск с reply-клавиатуры: sendData доступен
+    if (HOME_MODE) { // экран навыков: карточки шлют команду через sendData
+      loadState = 'anon'; // при reply-запуске initData пуст — профиль не тянем
+      renderAll();
+      showTab('home');
+      document.getElementById('tabbar').classList.add('hide'); // профиль недоступен без initData
+    } else {
+      openWizard(false); // онбординг
+    }
     return;
   }
   if (!tg || !tg.initData) { // открыто в обычном браузере
@@ -616,12 +624,16 @@ function showTab(t) {
 }
 
 /* ================= skills ================= */
-/* Открываем чат бота, чтобы человек наговорил задачу. НЕ шлём ?start (это триггерило /start)
-   и НЕ закрываем приложение принудительно — навигация внутри мини-аппа его не роняет. */
-function runSkill(cmd) {
+/* Карточка навыка запускает команду бота через sendData. sendData работает ТОЛЬКО при
+   запуске мини-аппа с reply-кнопки (KB_MODE) — экран навыков как раз так и открывается. */
+function runSkill(skill) {
   haptic('medium');
-  // Навыки живут в чате бота. openTelegramLink на свой же бот из его мини-аппа — no-op
-  // (поэтому раньше «только вибрация»), поэтому закрываем мини-апп и открываем диалог.
+  if (KB_MODE && tg && tg.sendData) {
+    try { tg.disableClosingConfirmation(); } catch (e) {}
+    tg.sendData(JSON.stringify({ action: 'skill', skill: skill })); // сам закрывает мини-апп
+    return;
+  }
+  // не reply-запуск (например, вкладка навыков из профиля) — sendData не сработает, открываем чат
   if (tg) { try { tg.close(); return; } catch (e) {} }
   location.href = BOT_LINK;
 }
@@ -697,7 +709,7 @@ function renderProfile() {
       : '<div class="pv muted">Добавь любимые тексты — помогу попасть в голос</div>') +
     pcard('Паспорт стиля', sp
       ? '<span class="stychip"><span class="sdot" style="background:var(--ok)"></span>Создан — я пишу твоим голосом</span>'
-      : '<span class="stychip" style="cursor:pointer" role="button" tabindex="0" onclick="runSkill(\'/style\')"><span class="sdot" style="background:var(--warn)"></span>Ещё нет · Создать за 5 минут →</span>') +
+      : '<span class="stychip" style="cursor:pointer" role="button" tabindex="0" onclick="runSkill(\'style\')"><span class="sdot" style="background:var(--warn)"></span>Ещё нет · Создать за 5 минут →</span>') +
     pcard('Подписка', '<span class="stychip"><span class="sdot" style="background:var(--' + (si.cls === 'ok' ? 'ok' : 'warn') + ')"></span>' + esc(si.label) + '</span>');
   actions.classList.add('hide'); // редактирование теперь точечное, кнопкой «Править» у каждого пункта
 }
