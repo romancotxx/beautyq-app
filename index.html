@@ -65,7 +65,7 @@ h1,h2,h3{font-family:'Unbounded',sans-serif}
 /* ---------- profile ---------- */
 .ptitle{font-size:20px;font-weight:600;margin-bottom:4px}
 .psub{font-size:13px;color:var(--mut);margin-bottom:20px}
-.pcard{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.pcard{position:relative;background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px}
 .pcard .pl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
 .pcard .pv{font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
 .pv.muted{color:var(--mut);font-size:13px}
@@ -167,8 +167,30 @@ body.native-nav .succ .btn{display:none}
 .tcard.on .tname{color:var(--accent-2)}
 .tsample{font-size:13px;color:var(--mut);line-height:1.55}
 .tskip{font-size:12.5px;color:var(--mut);margin-top:10px;line-height:1.5}
-#emojiCustom{width:88px;height:56px;text-align:center;background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:28px;line-height:1;outline:none}
+#emojiCustom{width:100%;box-sizing:border-box;height:56px;text-align:center;background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:28px;line-height:1;outline:none}
 #emojiCustom:focus{border-color:var(--accent)}
+.emoji-row{display:flex;gap:8px;align-items:stretch}
+.emoji-row #emojiCustom,.emoji-row .ef{flex:1}
+.emoji-rnd{flex:none;width:56px;border:1.5px solid var(--brd);border-radius:var(--rs);background:var(--sur);color:var(--txt);font-size:24px;line-height:1;cursor:pointer}
+.emoji-rnd:active{opacity:.6}
+/* правка профиля по пунктам */
+.pedit{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--accent-2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:2px 4px}
+.pedit:active{opacity:.6}
+.ef{width:100%;box-sizing:border-box;background:var(--sur2);border:1.5px solid var(--brd);border-radius:12px;color:var(--txt);font-family:inherit;font-size:14px;padding:11px 12px;margin-bottom:8px;outline:none}
+.ef:focus{border-color:var(--accent)}
+textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
+.efbtns{display:flex;gap:8px;margin-top:2px}
+.efbtn{flex:1;padding:11px;border-radius:12px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.efbtn.save{background:var(--grad);color:#fff}
+.efbtn.cancel{background:var(--sur2);border:1px solid var(--brd);color:var(--txt)}
+.efbtn:active{opacity:.75}
+.efchks{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.efchk{display:flex;align-items:center;gap:6px;font-size:13px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:8px 10px;cursor:pointer}
+.efseg{display:flex;gap:8px;margin-bottom:8px}
+.efopt{display:flex;align-items:center;gap:6px;font-size:14px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:10px 12px;cursor:pointer;flex:1}
+.efcolor{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.efcolor .efcname{flex:1;margin-bottom:0}
+.efchex{flex:none;width:46px;height:42px;padding:2px;border:1px solid var(--brd);border-radius:8px;background:var(--sur2);cursor:pointer}
 </style>
 </head>
 <body>
@@ -371,8 +393,11 @@ body.native-nav .succ .btn{display:none}
   <div class="tskip">Не можешь выбрать — просто жми дальше, разберёмся по твоим примерам</div>
   <div class="field" style="margin-top:22px">
     <label class="fl">Любимый эмодзи</label>
-    <input type="text" id="emojiCustom" maxlength="8" placeholder="💙" oninput="cleanEmoji(this)">
-    <div class="tskip">Один эмодзи, который буду иногда вставлять в тексты. По умолчанию 💙</div>
+    <div class="emoji-row">
+      <input type="text" id="emojiCustom" maxlength="8" placeholder="💙" oninput="cleanEmoji(this)">
+      <button type="button" class="emoji-rnd" onclick="randomEmoji()" aria-label="Случайный эмодзи">🎲</button>
+    </div>
+    <div class="tskip">Один эмодзи для твоих текстов. Кубик подберёт случайный, по умолчанию 💙</div>
   </div>
 </div>
 
@@ -591,16 +616,12 @@ function showTab(t) {
 }
 
 /* ================= skills ================= */
-/* deep link t.me/bot?start=<навык> — Telegram сам отправит команду в чат */
+/* Открываем чат бота, чтобы человек наговорил задачу. НЕ шлём ?start (это триггерило /start)
+   и НЕ закрываем приложение принудительно — навигация внутри мини-аппа его не роняет. */
 function runSkill(cmd) {
   haptic('medium');
-  var url = BOT_LINK + '?start=' + cmd.replace('/', '');
-  if (tg && tg.openTelegramLink) {
-    tg.openTelegramLink(url);
-    /* openTelegramLink не на всех платформах закрывает Mini App — закрываем сами, чтобы человек сразу видел ответ бота */
-    setTimeout(function () { try { tg.close(); } catch (e) {} }, 150);
-  }
-  else { location.href = url; }
+  if (tg && tg.openTelegramLink) { tg.openTelegramLink(BOT_LINK); }
+  else if (!tg) { location.href = BOT_LINK; }
 }
 
 /* ================= profile render ================= */
@@ -660,25 +681,146 @@ function renderProfile() {
   var sp = profile.style_passport && String(profile.style_passport).trim();
   var si = subInfo();
   box.innerHTML =
-    (meta ? pcard('Салон', '<div class="pv">' + esc(meta) + '</div>') : '') +
-    pcard('О салоне', pval(profile.description, 'Расскажи о себе — тексты станут личнее')) +
-    pcard('Аудитория', pval(profile.audience, 'Опиши, кто твои клиенты')) +
-    pcard('Услуги', ptags(profile.services, 'Отметь услуги — буду писать по делу')) +
-    pcard('Платформы', ptags(profile.platforms, 'Где ведёшь соцсети?')) +
-    pcard('Обращение к клиентам', pval(profile.address, 'На ты или на вы?')) +
-    pcard('Стиль текстов', pval(profile.tone, 'Выбери стартовый стиль в анкете — начну с него и подстроюсь под тебя')) +
-    pcard('Любимый эмодзи', pval(profile.favorite_emoji, 'Укажи в анкете — буду иногда вставлять его в тексты')) +
-    pcard('Фирменные цвета', pcolors(profile.colors)) +
-    pcard('Примеры текстов', exCount
+    ecard('basic', 'Салон', meta ? '<div class="pv">' + esc(meta) + '</div>' : '<div class="pv muted">Добавь город и стаж работы</div>') +
+    ecard('description', 'О салоне', pval(profile.description, 'Расскажи о себе — тексты станут личнее')) +
+    ecard('audience', 'Аудитория', pval(profile.audience, 'Опиши, кто твои клиенты')) +
+    ecard('services', 'Услуги', ptags(profile.services, 'Отметь услуги — буду писать по делу')) +
+    ecard('platforms', 'Платформы', ptags(profile.platforms, 'Где ведёшь соцсети?')) +
+    ecard('address', 'Обращение к клиентам', pval(profile.address, 'На ты или на вы?')) +
+    ecard('tone', 'Стиль текстов', pval(profile.tone, 'Стартовый стиль — начну с него и подстроюсь под тебя')) +
+    ecard('favoriteEmoji', 'Любимый эмодзи', pval(profile.favorite_emoji, 'Буду иногда вставлять его в тексты')) +
+    ecard('colors', 'Фирменные цвета', pcolors(profile.colors)) +
+    ecard('examples', 'Примеры текстов', exCount
       ? '<div class="pv">' + exCount + ' ' + plural(exCount, 'пример', 'примера', 'примеров') + ' сохранено</div>'
       : '<div class="pv muted">Добавь любимые тексты — помогу попасть в голос</div>') +
     pcard('Паспорт стиля', sp
       ? '<span class="stychip"><span class="sdot" style="background:var(--ok)"></span>Создан — я пишу твоим голосом</span>'
       : '<span class="stychip" style="cursor:pointer" role="button" tabindex="0" onclick="runSkill(\'/style\')"><span class="sdot" style="background:var(--warn)"></span>Ещё нет · Создать за 5 минут →</span>') +
     pcard('Подписка', '<span class="stychip"><span class="sdot" style="background:var(--' + (si.cls === 'ok' ? 'ok' : 'warn') + ')"></span>' + esc(si.label) + '</span>');
-  btn.textContent = 'Редактировать';
-  btn.onclick = function () { openWizard(true); };
-  actions.classList.remove('hide');
+  actions.classList.add('hide'); // редактирование теперь точечное, кнопкой «Править» у каждого пункта
+}
+
+/* ---- точечная правка профиля: у каждого пункта кнопка «Править», правит только его ---- */
+var editKey = null;
+function ecard(key, label, viewHtml) {
+  if (editKey === key) return '<div class="pcard"><div class="pl">' + label + '</div>' + editorFor(key) + '</div>';
+  return '<div class="pcard"><button class="pedit" onclick="startEdit(\'' + key + '\')">Править</button><div class="pl">' + label + '</div>' + viewHtml + '</div>';
+}
+function startEdit(key) { haptic(); editKey = key; renderProfile(); var el = document.getElementById('ef-' + key); if (el) try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }
+function cancelEdit() { haptic(); editKey = null; renderProfile(); }
+function escAttr(s) { return esc(s).replace(/"/g, '&quot;'); }
+function splitCsv(s) { return String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
+function efVal(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+function checkboxEditor(cls, presets, selected) {
+  var extras = selected.filter(function (s) { return presets.indexOf(s) < 0; });
+  var boxes = presets.map(function (p) {
+    var on = selected.indexOf(p) >= 0;
+    return '<label class="efchk"><input type="checkbox" class="' + cls + '" value="' + escAttr(p) + '"' + (on ? ' checked' : '') + '> ' + esc(p) + '</label>';
+  }).join('');
+  return '<div class="efchks">' + boxes + '</div><input class="ef" id="' + cls + '-extra" placeholder="Другое через запятую" value="' + escAttr(extras.join(', ')) + '">';
+}
+function readChecks(cls) {
+  var arr = [];
+  document.querySelectorAll('input.' + cls + ':checked').forEach(function (c) { arr.push(c.value); });
+  splitCsv(efVal(cls + '-extra')).forEach(function (s) { if (arr.indexOf(s) < 0) arr.push(s); });
+  return arr;
+}
+function colorsEditor(colors) {
+  var rows = colors.slice(); rows.push({ name: '', hex: '' });
+  return rows.map(function (c) {
+    var hex = /^#[0-9A-Fa-f]{6}$/.test(c.hex) ? c.hex : '#2448D5';
+    return '<div class="efcolor"><input class="ef efcname" placeholder="Название цвета" value="' + escAttr(c.name) + '"><input type="color" class="efchex" value="' + hex + '"></div>';
+  }).join('');
+}
+function readColors() {
+  var out = [];
+  document.querySelectorAll('.efcolor').forEach(function (row) {
+    var name = row.querySelector('.efcname').value.trim();
+    var hex = row.querySelector('.efchex').value;
+    if (name) out.push({ name: name, hex: hex });
+  });
+  return out;
+}
+function examplesEditor(examples) {
+  var rows = examples.slice(); rows.push('');
+  return rows.map(function (t) {
+    return '<textarea class="ef efexi" rows="2" placeholder="Пример текста в твоём стиле">' + esc(t) + '</textarea>';
+  }).join('');
+}
+function readExamples() {
+  var out = []; document.querySelectorAll('.efexi').forEach(function (a) { var v = a.value.trim(); if (v) out.push(v); }); return out;
+}
+function editorFor(key) {
+  var p = profile, h = '';
+  if (key === 'basic') {
+    h = '<input class="ef" id="ef-basic" placeholder="Название салона" value="' + escAttr(p.salon_name) + '">'
+      + '<input class="ef" id="efCity" placeholder="Город" value="' + escAttr(p.city) + '">'
+      + '<input class="ef" id="efAge" placeholder="Сколько лет салону" value="' + escAttr(p.age) + '">';
+  } else if (key === 'description') {
+    h = '<textarea class="ef" id="ef-description" rows="4" placeholder="Расскажи о салоне">' + esc(p.description) + '</textarea>';
+  } else if (key === 'audience') {
+    h = '<textarea class="ef" id="ef-audience" rows="3" placeholder="Кто твои клиенты">' + esc(p.audience) + '</textarea>';
+  } else if (key === 'services') {
+    h = '<div id="ef-services">' + checkboxEditor('efSvc', PRESET_SVC, splitCsv(p.services)) + '</div>';
+  } else if (key === 'platforms') {
+    h = '<div id="ef-platforms">' + checkboxEditor('efPlat', PRESET_PLAT, splitCsv(p.platforms)) + '</div>';
+  } else if (key === 'address') {
+    var a = p.address || '';
+    h = '<div class="efseg" id="ef-address">'
+      + '<label class="efopt"><input type="radio" name="efAddr" value="на ты"' + (a === 'на ты' ? ' checked' : '') + '> На ты</label>'
+      + '<label class="efopt"><input type="radio" name="efAddr" value="на вы"' + (a === 'на вы' ? ' checked' : '') + '> На вы</label></div>';
+  } else if (key === 'tone') {
+    var tones = ['Тепло и по-дружески', 'Спокойно и экспертно', 'Смело и с характером', 'Коротко и по делу'];
+    h = '<select class="ef" id="ef-tone"><option value="">Не выбрано</option>' + tones.map(function (t) { return '<option' + (p.tone === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>';
+  } else if (key === 'favoriteEmoji') {
+    var ev = firstEmoji(p.favorite_emoji); if (ev === '💙') ev = '';
+    h = '<div class="emoji-row"><input class="ef" id="ef-favoriteEmoji" maxlength="8" placeholder="💙" value="' + escAttr(ev) + '" oninput="cleanEmojiEl(this)"><button type="button" class="emoji-rnd" onclick="randomEmojiEl(\'ef-favoriteEmoji\')" aria-label="Случайный эмодзи">🎲</button></div>';
+  } else if (key === 'colors') {
+    h = '<div id="ef-colors">' + colorsEditor(rowToData(p).colors) + '</div>';
+  } else if (key === 'examples') {
+    h = '<div id="ef-examples">' + examplesEditor(rowToData(p).examples) + '</div>';
+  }
+  return h + '<div class="efbtns"><button class="efbtn save" onclick="commitEdit(\'' + key + '\')">Сохранить</button><button class="efbtn cancel" onclick="cancelEdit()">Отмена</button></div>';
+}
+function commitEdit(key) {
+  var patch = {};
+  if (key === 'basic') { patch.salonName = efVal('ef-basic'); patch.city = efVal('efCity'); patch.age = efVal('efAge'); }
+  else if (key === 'description') patch.description = efVal('ef-description');
+  else if (key === 'audience') patch.audience = efVal('ef-audience');
+  else if (key === 'services') patch.services = readChecks('efSvc');
+  else if (key === 'platforms') patch.platforms = readChecks('efPlat');
+  else if (key === 'address') { var r = document.querySelector('input[name=efAddr]:checked'); patch.address = r ? r.value : ''; }
+  else if (key === 'tone') patch.tone = efVal('ef-tone');
+  else if (key === 'favoriteEmoji') patch.favoriteEmoji = firstEmoji(efVal('ef-favoriteEmoji'));
+  else if (key === 'colors') patch.colors = readColors();
+  else if (key === 'examples') patch.examples = readExamples();
+  saveField(patch);
+}
+function applyProfileFromData(data) {
+  profile = profile || {};
+  profile.salon_name = data.salonName; profile.city = data.city; profile.age = data.age;
+  profile.description = data.description; profile.audience = data.audience;
+  profile.services = (data.services || []).join(', '); profile.platforms = (data.platforms || []).join(', ');
+  profile.address = data.address;
+  profile.colors = (data.colors || []).map(function (c) { return c.name + ': ' + c.hex; }).join('; ');
+  profile.examples = (data.examples || []).map(function (t, i) { return (i + 1) + '. ' + t; }).join('\n');
+  profile.tone = data.tone; profile.favorite_emoji = data.favoriteEmoji;
+}
+function saveField(patch) {
+  if (!tg || !tg.initData) { toast('Открой профиль из Telegram'); return; }
+  var data = rowToData(profile);
+  Object.keys(patch).forEach(function (k) { data[k] = patch[k]; });
+  toast('Сохраняю…');
+  fetchT(API, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'save_profile', profile: data, initData: tg.initData })
+  }, 15000)
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) { haptic('medium'); applyProfileFromData(data); editKey = null; renderAll(); toast('Сохранено ✨'); }
+      else { toast('Не сохранилось. Попробуй ещё раз'); }
+    })
+    .catch(function () { toast('Не сохранилось. Проверь интернет'); });
 }
 function togglePinfo(e) {
   e.preventDefault();
@@ -723,8 +865,14 @@ function setTone(v) {
   document.querySelectorAll('#toneGroup .tcard').forEach(function (c) { c.classList.toggle('on', !!v && c.dataset.tone === v); });
 }
 function setEmoji(v) {
-  document.getElementById('emojiCustom').value = firstEmoji(v);
+  var e = firstEmoji(v);
+  document.getElementById('emojiCustom').value = (e === '💙') ? '' : e; // 💙 показываем плейсхолдером, чтобы уходило при вводе
 }
+var EMOJI_SET = ['✨', '🪷', '❤️', '💖', '🤍', '✨', '🥰', '🫶🏼', '🖤', '🥹', '💘', '💝', '🐚', '🌿', '💛', '💚', '💜'];
+function randEmoji() { return EMOJI_SET[Math.floor(Math.random() * EMOJI_SET.length)]; }
+function randomEmoji() { document.getElementById('emojiCustom').value = firstEmoji(randEmoji()); saveDraft(); haptic(); }
+function randomEmojiEl(id) { document.getElementById(id).value = firstEmoji(randEmoji()); haptic(); }
+function cleanEmojiEl(el) { el.value = firstEmoji(el.value); }
 var PRESET_SVC = ['Ногтевой сервис', 'Брови и ресницы', 'Волосы и парикмахерские услуги', 'Эпиляция и депиляция', 'Косметология и уход за кожей', 'Уход за телом и SPA', 'Визаж'];
 var PRESET_PLAT = ['Instagram', 'Telegram', 'ВКонтакте', 'Сайт', 'TikTok'];
 
