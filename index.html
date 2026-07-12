@@ -174,8 +174,8 @@ body.native-nav .succ .btn{display:none}
 .emoji-rnd{flex:none;width:56px;border:1.5px solid var(--brd);border-radius:var(--rs);background:var(--sur);color:var(--txt);font-size:24px;line-height:1;cursor:pointer}
 .emoji-rnd:active{opacity:.6}
 /* правка профиля по пунктам */
-.pedit{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--accent-2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:2px 4px}
-.pedit:active{opacity:.6}
+.pedit{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--accent-2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:2px 4px;opacity:.4}
+.pedit:active{opacity:.7}
 .ef{width:100%;box-sizing:border-box;background:var(--sur2);border:1.5px solid var(--brd);border-radius:12px;color:var(--txt);font-family:inherit;font-size:14px;padding:11px 12px;margin-bottom:8px;outline:none}
 .ef:focus{border-color:var(--accent)}
 textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
@@ -370,8 +370,16 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 
 <div class="step" data-step="5">
   <div class="slabel">Шаг 5 из 7</div>
-  <div class="stitle">Каким тоном писать?</div>
-  <div class="shint">Выбери текст, который мог бы выйти у твоего салона. Это стартовая точка: начну в этом стиле, а дальше подстроюсь под твои реальные тексты и манеру общения</div>
+  <div class="stitle">Стиль общения</div>
+  <div class="field">
+    <label class="fl">Любимый эмодзи</label>
+    <div class="emoji-row">
+      <input type="text" id="emojiCustom" maxlength="8" value="💙" onfocus="emojiFocus(this)" oninput="cleanEmoji(this)" onblur="emojiBlur(this)">
+      <button type="button" class="emoji-rnd" onclick="randomEmoji()" aria-label="Случайный эмодзи">🎲</button>
+    </div>
+    <div class="tskip">Один эмодзи для твоих текстов. Кубик подберёт случайный, по умолчанию 💙</div>
+  </div>
+  <div class="shint" style="margin-top:22px">Выбери текст, который мог бы выйти у твоего салона. Это стартовая точка: начну в этом стиле, а дальше подстроюсь под твои реальные тексты и манеру общения</div>
   <div id="toneGroup">
     <div class="tcard" data-tone="Тепло и по-дружески" role="button" tabindex="0" onclick="pickTone(this)">
       <div class="tname">Тепло и по-дружески</div>
@@ -391,14 +399,6 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
     </div>
   </div>
   <div class="tskip">Не можешь выбрать — просто жми дальше, разберёмся по твоим примерам</div>
-  <div class="field" style="margin-top:22px">
-    <label class="fl">Любимый эмодзи</label>
-    <div class="emoji-row">
-      <input type="text" id="emojiCustom" maxlength="8" placeholder="💙" oninput="cleanEmoji(this)">
-      <button type="button" class="emoji-rnd" onclick="randomEmoji()" aria-label="Случайный эмодзи">🎲</button>
-    </div>
-    <div class="tskip">Один эмодзи для твоих текстов. Кубик подберёт случайный, по умолчанию 💙</div>
-  </div>
 </div>
 
 <div class="step" data-step="6">
@@ -427,7 +427,7 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 <div class="step" data-step="7">
   <div class="slabel">Шаг 7 из 7</div>
   <div class="stitle">Примеры текстов</div>
-  <div class="shint">Вставь тексты, которые вам нравятся: посты, сообщения, описания. Это поможет попасть в ваш голос</div>
+  <div class="shint">Пришли тексты, которые писала ты сама и которые тебе нравятся, а не сгенерированные ChatGPT. По ним я точнее поймаю твой живой голос и буду писать так же</div>
   <div class="exlist" id="exList">
     <div class="exitem"><span class="exnum">1.</span><textarea class="ext" placeholder="Вставь текст, который вам нравится..."></textarea></div>
     <div class="exitem"><span class="exnum">2.</span><textarea class="ext" placeholder="Ещё один пример (необязательно)..."></textarea></div>
@@ -620,8 +620,10 @@ function showTab(t) {
    и НЕ закрываем приложение принудительно — навигация внутри мини-аппа его не роняет. */
 function runSkill(cmd) {
   haptic('medium');
-  if (tg && tg.openTelegramLink) { tg.openTelegramLink(BOT_LINK); }
-  else if (!tg) { location.href = BOT_LINK; }
+  // Навыки живут в чате бота. openTelegramLink на свой же бот из его мини-аппа — no-op
+  // (поэтому раньше «только вибрация»), поэтому закрываем мини-апп и открываем диалог.
+  if (tg) { try { tg.close(); return; } catch (e) {} }
+  location.href = BOT_LINK;
 }
 
 /* ================= profile render ================= */
@@ -773,8 +775,8 @@ function editorFor(key) {
     var tones = ['Тепло и по-дружески', 'Спокойно и экспертно', 'Смело и с характером', 'Коротко и по делу'];
     h = '<select class="ef" id="ef-tone"><option value="">Не выбрано</option>' + tones.map(function (t) { return '<option' + (p.tone === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>';
   } else if (key === 'favoriteEmoji') {
-    var ev = firstEmoji(p.favorite_emoji); if (ev === '💙') ev = '';
-    h = '<div class="emoji-row"><input class="ef" id="ef-favoriteEmoji" maxlength="8" placeholder="💙" value="' + escAttr(ev) + '" oninput="cleanEmojiEl(this)"><button type="button" class="emoji-rnd" onclick="randomEmojiEl(\'ef-favoriteEmoji\')" aria-label="Случайный эмодзи">🎲</button></div>';
+    var ev = firstEmoji(p.favorite_emoji) || '💙';
+    h = '<div class="emoji-row"><input class="ef" id="ef-favoriteEmoji" maxlength="8" value="' + escAttr(ev) + '" onfocus="emojiFocus(this)" oninput="cleanEmojiEl(this)" onblur="emojiBlur(this)"><button type="button" class="emoji-rnd" onclick="randomEmojiEl(\'ef-favoriteEmoji\')" aria-label="Случайный эмодзи">🎲</button></div>';
   } else if (key === 'colors') {
     h = '<div id="ef-colors">' + colorsEditor(rowToData(p).colors) + '</div>';
   } else if (key === 'examples') {
@@ -866,8 +868,10 @@ function setTone(v) {
 }
 function setEmoji(v) {
   var e = firstEmoji(v);
-  document.getElementById('emojiCustom').value = (e === '💙') ? '' : e; // 💙 показываем плейсхолдером, чтобы уходило при вводе
+  document.getElementById('emojiCustom').value = e || '💙'; // дефолт 💙 как значение
 }
+function emojiFocus(inp) { if (inp.value.trim() === '💙') inp.value = ''; } // по клику дефолт уходит, поле готово к вводу
+function emojiBlur(inp) { if (!inp.value.trim()) inp.value = '💙'; }        // ничего не ввели — вернём дефолт
 var EMOJI_SET = ['✨', '🪷', '❤️', '💖', '🤍', '✨', '🥰', '🫶🏼', '🖤', '🥹', '💘', '💝', '🐚', '🌿', '💛', '💚', '💜'];
 function randEmoji() { return EMOJI_SET[Math.floor(Math.random() * EMOJI_SET.length)]; }
 function randomEmoji() { document.getElementById('emojiCustom').value = firstEmoji(randEmoji()); saveDraft(); haptic(); }
