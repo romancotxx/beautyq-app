@@ -254,8 +254,8 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
   <div class="sect">Пример</div>
   <div class="pcard">
     <div class="pl">Пост для ногтевой студии</div>
-    <div class="demo-post">Летний френч уже в студии: молочная база и тонкая мятная линия. Держится три-четыре недели, фото до и после — в сторис. На этой неделе свободны суббота утром и воскресенье после трёх. Напиши «френч» в директ — забронируем 💅</div>
-    <div class="demo-note" id="demoNote">После анкеты буду писать так же — только голосом твоего салона.</div>
+    <div class="demo-post">Катя вернулась с обучения по японскому маникюру и весь вечер тренировалась на мне. Руки как после спа, блеск свой, без покрытия — держится дней десять. В четверг и пятницу берём на японский по 1500, пока рука набита. Пиши «японский» в директ 💅</div>
+    <div class="demo-note" id="demoNote">После знакомства буду писать так же — только голосом твоего салона.</div>
   </div>
 
   <div class="sect">А ещё в чате</div>
@@ -307,9 +307,9 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
   <div class="shint">Название и город, чтобы я знал, с кем работаю</div>
   <div class="field"><label class="fl" for="salonName">Название</label><input type="text" id="salonName" placeholder="Например, Studio Nova"></div>
   <div class="field"><label class="fl" for="salonCity">Город</label><input type="text" id="salonCity" placeholder="Москва, Казань, Алматы..." autocomplete="address-level2"></div>
-  <div class="field"><label class="fl" for="salonAge">Сколько лет работаете?</label><input type="text" id="salonAge" placeholder="Например, 3 года"></div>
+  <div class="field"><label class="fl" for="salonAge">Сколько лет салону?</label><input type="text" id="salonAge" placeholder="Например, 3 года"></div>
   <div class="field" style="margin-top:22px">
-    <label class="cbi"><input type="checkbox" id="consentCb"><span>Я согласен(а) на обработку указанных данных для персонализации работы сервиса</span></label>
+    <label class="cbi"><input type="checkbox" id="consentCb"><span>Даю согласие на обработку указанных данных для персонализации работы сервиса</span></label>
     <div style="margin-top:6px"><a href="#" class="consent-more" onclick="toggleConsent(event)">Подробнее об использовании данных</a></div>
     <div id="consentText" style="display:none;margin-top:8px;font-size:12.5px;color:var(--mut);line-height:1.6;padding:12px 14px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs)">Заполняя анкету, вы соглашаетесь с тем, что указанные вами данные (название и описание бизнеса, услуги, контактные предпочтения) будут храниться и использоваться сервисом БьютиQ исключительно для генерации персонализированных текстов под ваш бизнес. Данные не передаются третьим лицам и могут быть удалены по вашему запросу через команду /profile.</div>
   </div>
@@ -317,15 +317,15 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 
 <div class="step" data-step="2">
   <div class="slabel">Шаг 2 из 7</div>
-  <div class="stitle">Расскажите о себе</div>
-  <div class="shint">Своими словами: кто вы, как себя позиционируете, что делает вас особенными</div>
-  <div class="field"><textarea id="salonDesc" placeholder="Расскажите о себе, как вы себя позиционируете, своим языком..." rows="6"></textarea></div>
+  <div class="stitle">Расскажи о себе</div>
+  <div class="shint">Своими словами: кто ты, как себя подаёшь, чем твой салон не похож на соседний</div>
+  <div class="field"><textarea id="salonDesc" placeholder="Своими словами — так, как рассказала бы подруге..." rows="6"></textarea></div>
 </div>
 
 <div class="step" data-step="3">
   <div class="slabel">Шаг 3 из 7</div>
   <div class="stitle">Услуги и аудитория</div>
-  <div class="shint">Кто приходит к вам и за чем</div>
+  <div class="shint">Кто к тебе приходит и за чем</div>
   <div class="field"><label class="fl" for="audience">Целевая аудитория</label><input type="text" id="audience" placeholder="Например, женщины 25-40, занятые мамы..."></div>
   <div class="field">
     <label class="fl">Основные услуги</label>
@@ -345,8 +345,8 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 
 <div class="step" data-step="4">
   <div class="slabel">Шаг 4 из 7</div>
-  <div class="stitle">Где и как вы общаетесь?</div>
-  <div class="shint">Выберите платформы и обращение к клиентам</div>
+  <div class="stitle">Где ты общаешься с клиентами?</div>
+  <div class="shint">Отметь площадки и то, как обращаешься к клиентам</div>
   <div class="field">
     <label class="fl">Платформы</label>
     <div class="cbg" id="platGroup">
@@ -429,7 +429,7 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
   <div class="stitle">Примеры текстов</div>
   <div class="shint">Пришли тексты, которые писала ты сама и которые тебе нравятся, а не сгенерированные ChatGPT. По ним я точнее поймаю твой живой голос и буду писать так же</div>
   <div class="exlist" id="exList">
-    <div class="exitem"><span class="exnum">1.</span><textarea class="ext" placeholder="Вставь текст, который вам нравится..."></textarea></div>
+    <div class="exitem"><span class="exnum">1.</span><textarea class="ext" placeholder="Вставь текст, который тебе нравится..."></textarea></div>
     <div class="exitem"><span class="exnum">2.</span><textarea class="ext" placeholder="Ещё один пример (необязательно)..."></textarea></div>
     <div class="exitem"><span class="exnum">3.</span><textarea class="ext" placeholder="И ещё один (необязательно)..."></textarea></div>
   </div>
@@ -590,7 +590,7 @@ function renderHero() {
     p.textContent = 'Расскажи о салоне один раз — 3 минуты, и каждый текст будет в твоём голосе.';
     b.firstChild.textContent = 'Заполнить анкету ';
     document.getElementById('hero')._action = 'wizard';
-    document.getElementById('demoNote').textContent = 'После анкеты буду писать так же — только голосом твоего салона.';
+    document.getElementById('demoNote').textContent = 'После знакомства буду писать так же — только голосом твоего салона.';
   } else {
     t.textContent = 'Наговори задачу — верну готовый текст';
     p.textContent = 'Открой чат и скажи голосом, что нужно: пост, идеи или ответ на отзыв.';
