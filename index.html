@@ -453,6 +453,14 @@ textarea.ef{resize:vertical;line-height:1.5;min-height:60px}
 <script>
 /* ================= core ================= */
 var API = 'https://209-250-243-198.sslip.io/webhook/beautyq-app';
+// IANA timezone устройства (Asia/Ho_Chi_Minh, Europe/Moscow, ...). Пусто, если определить нельзя —
+// тогда бот сам не подставляет Москву молча, а решает по сохранённому tz / карте городов.
+function tzGuess() {
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    return (typeof tz === 'string' && (tz === 'UTC' || tz.indexOf('/') > 0) && tz.length <= 64) ? tz : '';
+  } catch (e) { return ''; }
+}
 var BOT_LINK = 'https://t.me/BeatyQ_Assistant_Bot';
 var DRAFT_KEY = 'bq_draft_v1';
 var tg = window.Telegram && window.Telegram.WebApp;
@@ -804,6 +812,7 @@ function saveField(patch) {
   if (!tg || !tg.initData) { toast('Открой профиль из Telegram'); return; }
   var data = rowToData(profile);
   Object.keys(patch).forEach(function (k) { data[k] = patch[k]; });
+  var _tz = tzGuess(); if (_tz) data.timezone = _tz; // не затираем сохранённый tz пустым значением
   toast('Сохраняю…');
   fetchT(API, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1129,7 +1138,8 @@ function collectData() {
     examples: examples,
     tone: getTone(),
     favoriteEmoji: getEmoji(),
-    consent: document.getElementById('consentCb').checked ? 'да, ' + new Date().toISOString() : ''
+    consent: document.getElementById('consentCb').checked ? 'да, ' + new Date().toISOString() : '',
+    timezone: tzGuess()
   };
 }
 function setSaving(on) {
